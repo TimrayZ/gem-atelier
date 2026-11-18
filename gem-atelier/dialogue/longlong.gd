@@ -1,0 +1,37 @@
+extends RefCounted
+## An enthusiastic learner, never an all-knowing instructor.
+const MATERIALS = [
+	"变石有时是板状或柱状，也可能因为搬运磨成圆粒。爷爷书里画过连生晶体，不过我们现在先观察这块单独的断晶。换不同的灯，它的呈色也会变化。",
+	"紫水晶属于石英，常能见到六方柱和尖尖的晶头。晶体表面的天然平面，不是我们已经切好的刻面。也有带母岩、附着物或被磨圆的原料。",
+	"蓝宝石的原生晶体可以像六方的小桶或纺锤；冲积原料则可能磨圆。原皮和附着物要看具体这块原料，不是每块都有一层壳。",
+	"许多宝石级钻石原石会形成八面体，像两座小金字塔底对底。天然生长面不等于成品切面。真实钻石加工有专门设备和晶向要求，这里先做游戏里的几何实验。",
+	"正长石能呈柱状或板状，也会留下解理面。我们选的是透明品种；它不是会自动出现月光效果的通用长石。那些复杂的矿物名字……我们慢慢认。"
+]
+static func topic(model, manual: bool = false, stage_hint: int = -1) -> Dictionary:
+	var key: String = "raw:%d"%model.gem_id
+	var greeting := "爷爷留下的书好厚……我们一起从这一页开始吧？"
+	var title := "爷爷的手记 · 原石与琢型"
+	var body: String = MATERIALS[model.gem_id]+"\n\n先在左边挑材料，右边选想试的形状。原生晶体和冲积磨圆料可以切换；原皮或附着物也能单独选择。\n\n每一刀都会真的去掉材料。我们选的琢型只是目标，切歪的地方也会留下来。"
+	match model.stage if stage_hint < 0 else stage_hint:
+		1:
+			key = "transfer" if model.awaiting_transfer else "mount"
+			greeting = "这里画了两根粘杆……爷爷想提醒我们翻面吧？" if model.awaiting_transfer else "这些工具我都擦得亮亮的。现在轮到我们试试啦。"
+			title = "爷爷的手记 · 转接翻面" if model.awaiting_transfer else "爷爷的手记 · 粘杆与八角手"
+			body = "先把已经加工好的亭部转接到另一根粘杆，保持轴线对齐，再加工冠部与台面。\n\n翻面只改变装夹，不会恢复已经磨掉的材料。" if model.awaiting_transfer else "宝石固定在粘杆端部，八角手支承在托台上。让当前要磨的面接触磨盘。\n\n参考角度是一条提示。改角度或进给深度，会切出不同的实体；材料磨掉后就补不回来了。\n\n按住加工按钮或空格磨削，每面完成后松开，再磨下一面。开启滴水，留意温度。"
+		2:
+			key = "cut"
+			greeting = "哦，书上说要一面一面来。我也把分度记住啦！"
+			title = "爷爷的手记 · 切削与观察"
+			body = "选择 600# 切面盘。首次接触前调整角度和进给，再按住加工按钮或空格。\n\n完成一面后松开，八角手会转向下一面。点击「抬起观察」可以拖动检查形状。\n\n滴水能带走热量。游戏中热损伤累积到阈值会贯穿开裂；冷却也不能让裂口愈合。"
+		3:
+			key = "polish"
+			greeting = "这一面有点雾蒙蒙……书上画了个抛光盘，我们试试？"
+			title = "爷爷的手记 · 一次抛光"
+			body = "换上 3000# 抛光盘，让它贴合实际切出的角度。\n\n每面只需抛光一次。抛光会改善表面，却不会把切歪的形状变成标准形。\n\n先完成亭部与腰围，再转接翻面，继续冠部和台面。"
+		4:
+			key = "showcase"
+			greeting = "亮了亮了！先别收起来，让我再换盏灯看看！"
+			title = "两个人的发现 · 把光慢慢转过来"
+			body = "拖动旋转，滚轮缩放，按 1 / 2 / 3 换灯。H / J 可以从冠部或亭部正视。\n\n光会在刻面间折射与反射，不同波长也会走不同路径。晶体会选择性吸收部分光，所以光程和光源都会影响呈色。\n\n现在是受限的光线追踪原型，不是完整的真实感渲染器。「内含物对照」可以看看空间中的小特征如何影响光路。"
+	if manual: key = "manual:"+key
+	return {"key":key,"greeting":greeting,"title":title,"body":body}

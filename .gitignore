@@ -1,0 +1,6 @@
+tools/
+.godot/
+gem-atelier/.godot/
+*.tmp
+artifacts/
+*.import

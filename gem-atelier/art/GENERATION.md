@@ -1,0 +1,8 @@
+Mode: built-in image_gen tool, reference-guided generation, transparent background.
+Final asset: `longlong-guide.png`.
+Character reference: the white-haired, lavender-eyed dragon girl supplied by the user in this conversation.
+User's story: a little dragon rescued by the former shopkeeper, who loves shining gems, keeps his books and learns together with the player. The illustration is a stylized adaptation in practical workshop clothing.
+
+Exact generation prompt:
+
+Use case: stylized-concept, pixel-art game character asset. Input image is CHARACTER REFERENCE, not an edit target. Adapt the SAME dragon girl identity from the supplied reference into a cozy vintage gem workshop shopkeeper portrait: preserve long white hair with pale lavender shadows, large curved segmented white dragon horns, pale purple half-lidded eyes, sleepy deadpan expression with small warm smile, pointed ears, white Chinese knot ornament and dangling pale tassel beside the hair, and the distinctive curved ahoge. Cute chibi proportions, but a fully clothed adult fantasy shopkeeper. Give her a practical ivory long-sleeved blouse, muted sage-green and warm brown gem-cutter apron, a little brass brooch, one hand raised in a relaxed small greeting, other hand holding a rough purple crystal. One single waist-up bust including both hands, fully visible horns and ahoge with margins. Detailed but clean deliberate PIXEL ART with crisp square pixels, warm dark brown/lavender outline, limited muted palette; readable when displayed 150px high. No text, no frame, no symbols, no background or scenery: genuinely transparent alpha background. No sexualization, no low neckline. Keep her reference identity rather than the prior temporary teal-haired character.
