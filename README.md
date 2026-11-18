@@ -72,8 +72,8 @@ Run the command above for model tests; additional scripts cover all material/cut
 [Grace Pandora 坦格利安与工坊故事草案](docs/角色与故事方案.md)：昵称“潘潘”，24 岁主角与外出旅行的爷爷，以及不阻塞操作的开场自我介绍。本次仅提交方案，现有游戏剧情与 v0.9.0 下载版保持原样。
 [Character and story proposal](docs/角色与故事方案.md): Grace Pandora Targaryen, nicknamed Panpan; a 24-year-old protagonist; a grandfather away on a journey; and an unobtrusive opening introduction. This is a proposal only; the current game narrative and v0.9.0 download remain unchanged.
 
-[像素化与大展台方案及对照样张](docs/像素化展台方案.md)：讨论统一收藏室风格和更大的观赏区域，附可复现原型，尚未接入主游戏。
-[Pixel presentation and larger exhibition study](docs/像素化展台方案.md): collection styling, a larger viewer and a reproducible prototype; not yet integrated into the main game.
+[宝石材质风格修订与大展台样张](docs/像素化展台方案.md)：依据原视频画面重新设计刻面色块、轮廓与高光；上一轮马赛克方案已否定。附可复现材质原型，尚未接入主游戏。
+[Revised gem material and exhibition study](docs/像素化展台方案.md): facet colours, outlines and highlights redesigned against the video. The mosaic approach is rejected. Includes a reproducible material prototype, not yet integrated into the main game.
 
 ## 署名与许可 / Credits and licenses
 
