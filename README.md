@@ -5,7 +5,7 @@ A quiet gemstone workshop: choose a rough stone, cut and polish it, then turn it
 
 **[下载 Windows 游戏 / Download Windows game](https://github.com/TimrayZ/gem-atelier/releases/latest)**
 
-![成品展台 / Showcase](docs/images/showcase.png)
+![当前源码版本：日光下的椭圆钻石 / Current source build: oval diamond in daylight](docs/images/showcase.png)
 
 ## 下载后怎么玩 / Play
 
@@ -67,11 +67,16 @@ Open `gem-atelier/project.godot` in Godot 4.7.2 Standard, allow imports, then pr
 模型测试：`godot --headless --path gem-atelier --script res://tests/test_workshop.gd`。另有 `test_shapes.gd`、`test_damage.gd` 和图形流程测试 `test_collection.gd`；图形测试需要 OpenGL 环境。
 Run the command above for model tests; additional scripts cover all material/cut combinations, damage and collection browsing. Graphical tests require OpenGL.
 
+## 下一版故事方案 / Story proposal
+
+[Grace Pandora 坦格利安与工坊故事草案](docs/角色与故事方案.md)：昵称“潘潘”，24 岁主角与外出旅行的爷爷，以及不阻塞操作的开场自我介绍。本次仅提交方案，现有游戏剧情与 v0.9.0 下载版保持原样。
+[Character and story proposal](docs/角色与故事方案.md): Grace Pandora Targaryen, nicknamed Panpan; a 24-year-old protagonist; a grandfather away on a journey; and an unobtrusive opening introduction. This is a proposal only; the current game narrative and v0.9.0 download remain unchanged.
+
 ## 署名与许可 / Credits and licenses
 
 - **Carefree — Kevin MacLeod (incompetech.com)**，音乐适用 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)，录音未修改、降低播放音量。[原始来源 / Original source](https://remote.incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1400037) · [完整音频署名 / Audio credits](gem-atelier/audio/CREDITS.md).
 - [Godot Engine](https://godotengine.org/license/)，MIT 及相关第三方许可；Windows 下载附带运行时许可文本。MIT and third-party runtime notices accompany the Windows download.
-- GPT助手形象立绘按用户提供的参考由 AI 生成；未使用其他游戏素材、代码或录音。Portrait generated with AI from a user-provided reference; no assets, code or recordings from those commercial games are included.
+- GPT 助手立绘按用户提供的角色参考由 AI 生成。GPT assistant portrait generated with AI from a user-provided character reference.
 - 矿物数据 / Mineral facts: [Handbook of Mineralogy](https://www.handbookofmineralogy.org/)、[GIA](https://www.gia.edu/)。[本版研究与验证 / Research and validation](docs/发布说明0.9.md).
 
 原始代码采用 [MIT](LICENSE)。音乐与涉及第三方角色参考的图像不在代码许可授权范围内。
