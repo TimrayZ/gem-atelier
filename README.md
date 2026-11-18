@@ -71,7 +71,7 @@ Run the command above for model tests; additional scripts cover all material/cut
 
 - **Carefree — Kevin MacLeod (incompetech.com)**，音乐适用 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)，录音未修改、降低播放音量。[原始来源 / Original source](https://remote.incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1400037) · [完整音频署名 / Audio credits](gem-atelier/audio/CREDITS.md).
 - [Godot Engine](https://godotengine.org/license/)，MIT 及相关第三方许可；Windows 下载附带运行时许可文本。MIT and third-party runtime notices accompany the Windows download.
-- 珑珑立绘按用户提供的参考由 AI 生成；未使用《星露谷物语》或《集合啦！动物森友会》的游戏素材、代码或录音。Portrait generated with AI from a user-provided reference; no assets, code or recordings from those commercial games are included.
+- GPT助手形象立绘按用户提供的参考由 AI 生成；未使用其他游戏素材、代码或录音。Portrait generated with AI from a user-provided reference; no assets, code or recordings from those commercial games are included.
 - 矿物数据 / Mineral facts: [Handbook of Mineralogy](https://www.handbookofmineralogy.org/)、[GIA](https://www.gia.edu/)。[本版研究与验证 / Research and validation](docs/发布说明0.9.md).
 
 原始代码采用 [MIT](LICENSE)。音乐与涉及第三方角色参考的图像不在代码许可授权范围内。
