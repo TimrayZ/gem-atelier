@@ -15,7 +15,7 @@ func player(path: String, gain: float) -> AudioStreamPlayer:
 	return p
 
 func _ready() -> void:
-	audible = AudioServer.get_driver_name() != "Dummy"
+	audible = AudioServer.get_driver_name() != "Dummy" or OS.get_cmdline_args().has("--write-movie")
 	impact = player("res://audio/jade.wav", -13.0)
 	completion = player("res://audio/complete.wav", -11.0)
 	music = player("res://audio/carefree.mp3", -25.0)

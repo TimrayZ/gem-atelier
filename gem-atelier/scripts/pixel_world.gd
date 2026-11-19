@@ -315,7 +315,7 @@ func draw_solid(body: Array, center: Vector2, scale_factor: float, finished: boo
 		var shade: float = maxf(0.0,f.n.dot(light))
 		var raw: bool = f.tag == -1
 		var c: Color = Color("82745c") if raw and model.crust else displayed_color
-		c = c.darkened(0.70-shade*0.53)
+		c = c.darkened(0.52-floor(shade*4.0)/4.0*0.40) if raw else c.darkened(0.70-shade*0.53)
 		if raw:
 			c = c.lightened(fmod(absf(f.n.x*17.0+f.n.z*23.0),0.06))
 		elif f.tag == -3:
@@ -332,6 +332,23 @@ func draw_solid(body: Array, center: Vector2, scale_factor: float, finished: boo
 			if exposed_core.has(f.tag): poly(exposed_core[f.tag],c)
 		else:
 			poly(f.p,c)
+		if raw:
+			var packed=PackedVector2Array(f.p)
+			var border=packed.duplicate()
+			border.append(border[0])
+			draw_polyline(border,c.lightened(0.14),1.0)
+			var mid=Vector2.ZERO
+			for point in packed: mid+=point/packed.size()
+			if model.gem_id in [1,2,6,8]:
+				for offset in range(-16,17,4):
+					var a=mid+Vector2(offset,-6)
+					var b=mid+Vector2(offset,6)
+					if Geometry2D.is_point_in_polygon(a,packed) and Geometry2D.is_point_in_polygon(b,packed): draw_line(a.round(),b.round(),c.lightened(0.07),1.0)
+			elif packed.size()>=3:
+				var a=mid+Vector2(-2,1)
+				var b=mid+Vector2(2,1)
+				var d=mid+Vector2(0,-2)
+				if Geometry2D.is_point_in_polygon(a,packed) and Geometry2D.is_point_in_polygon(b,packed) and Geometry2D.is_point_in_polygon(d,packed): draw_polyline(PackedVector2Array([a,b,d,a]),c.darkened(0.12),1.0)
 		if not raw:
 			var points := PackedVector2Array(f.p)
 			points.append(points[0])

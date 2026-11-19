@@ -1,0 +1,37 @@
+<GemCutStudio version="1000">
+<index gear="96"/>
+<tier angle="138" depth="0.72" name="P">
+<facet index_angle="0"/>
+<facet index_angle="45"/>
+<facet index_angle="90"/>
+<facet index_angle="135"/>
+<facet index_angle="180"/>
+<facet index_angle="225"/>
+<facet index_angle="270"/>
+<facet index_angle="315"/>
+</tier>
+<tier angle="90" depth="1" name="G">
+<facet index_angle="0"/>
+<facet index_angle="45"/>
+<facet index_angle="90"/>
+<facet index_angle="135"/>
+<facet index_angle="180"/>
+<facet index_angle="225"/>
+<facet index_angle="270"/>
+<facet index_angle="315"/>
+</tier>
+<tier angle="35" depth="0.84" name="C">
+<facet index_angle="0"/>
+<facet index_angle="45"/>
+<facet index_angle="90"/>
+<facet index_angle="135"/>
+<facet index_angle="180"/>
+<facet index_angle="225"/>
+<facet index_angle="270"/>
+<facet index_angle="315"/>
+</tier>
+<tier angle="0" depth="0.48" name="T">
+<facet index_angle="0"/>
+</tier>
+<info title="Atelier Practice Octagon" author="Gem Atelier contributors"/>
+</GemCutStudio>

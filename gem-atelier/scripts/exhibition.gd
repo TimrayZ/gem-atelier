@@ -55,9 +55,9 @@ func _ready() -> void:
 	make_button("spin","",664,122,func(): host.world.auto_rotate=not host.world.auto_rotate)
 	make_button("save","收藏作品",796,146,func(): host.on_primary())
 	make_button("back","",952,140,go_back)
-	make_button("quality","",952,140,func(): host.world.max_bounces=6 if host.world.max_bounces>6 else 12)
+	make_button("quality","",952,140,func(): host.world.max_bounces={6:12,12:20,20:6}.get(host.world.max_bounces,12))
 	controls.quality.position.y=29
-	controls.quality.tooltip_text="流畅模式减少内部反射次数，部分亮度与细节会改变。"
+	controls.quality.tooltip_text="两种通道都使用此上限；6 次较快，12/20 次保留更多内部光路。"
 	hide()
 
 func make_button(id: String, text: String, x: int, width: int, callback: Callable) -> void:
@@ -122,11 +122,11 @@ func _process(_delta: float) -> void:
 func update_view() -> void:
 	var m=host.model
 	var w=host.world
-	title.text="%s  /  %s · %.2f ct"%[m.GEMS[m.gem_id].name,m.SHAPES[m.shape_id],m.carats()]
+	title.text="%s  /  %s · %.2f ct"%[m.GEMS[m.gem_id].name,m.cut_name(),m.carats()]
 	subtitle.text="%s · 拖动旋转 · 滚轮缩放 · 1/2/3 换光 · R 换风格 · 缺角 %d"%[["日光","白炽灯","中性光"][w.light_mode],m.chips.size()]
 	for i in range(3): controls[["day","warm","neutral"][i]].modulate=Color.WHITE if w.light_mode==i else Color("baaa8b")
-	controls.quality.visible=w.real_mode
-	controls.quality.text="画质 · "+("流畅" if w.max_bounces<=6 else "标准")
+	controls.quality.visible=true
+	controls.quality.text="反射上限 · %d"%w.max_bounces
 	controls.style.text="风格 · "+("真实" if w.real_mode else "像素")
 	controls.spin.text="旋转 · "+("开" if w.auto_rotate else "关")
 	controls.save.text="已收藏 ✓" if m.saved else "收藏作品"

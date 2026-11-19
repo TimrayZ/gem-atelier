@@ -3,6 +3,7 @@ const Solid = preload("res://scripts/solid_geometry.gd")
 const Data = preload("res://scripts/gem_data.gd")
 const Stock = preload("res://scripts/rough_stock.gd")
 var rough_kind := 0
+var imported_cut: Dictionary = {}
 enum Stage { RAW, MOUNT, CUT, POLISH, SHOWCASE }
 # Representative optical constants; heat limits are game values, not mineral data.
 const GEMS = [
@@ -10,9 +11,15 @@ const GEMS = [
 	{"name": "紫水晶", "en": "AMETHYST", "origin": "石英 · 紫色品种", "rough": 10.26, "angle": 43.0, "crown": 42.0, "ri": 1.544, "dispersion": 0.008, "heat": 75.0, "toughness": 0.8, "day": Color("a58cde"), "warm": Color("bc83c4"), "neutral": Color("a399e7")},
 	{"name": "蓝宝石", "en": "SAPPHIRE", "origin": "刚玉 · 蓝色品种", "rough": 6.52, "angle": 40.0, "crown": 38.0, "ri": 1.765, "dispersion": 0.018, "heat": 135.0, "toughness": 1.5, "day": Color("4f95dc"), "warm": Color("686fc0"), "neutral": Color("659ce8")},
 	{"name":"钻石","en":"DIAMOND","origin":"金刚石 · 无色透明","rough":5.8,"angle":40.75,"crown":34.5,"ri":2.417,"dispersion":0.044,"heat":180.0,"toughness":1.1,"day":Color("dce9ef"),"warm":Color("eadfce"),"neutral":Color("e5e8ee")},
-	{"name":"透明正长石","en":"ORTHOCLASE","origin":"长石族 · 透明品种","rough":9.2,"angle":43.0,"crown":40.0,"ri":1.522,"dispersion":0.012,"heat":70.0,"toughness":0.7,"day":Color("e7d7a8"),"warm":Color("ead7b1"),"neutral":Color("e1d5b7")}
+	{"name":"透明正长石","en":"ORTHOCLASE","origin":"长石族 · 透明品种","rough":9.2,"angle":43.0,"crown":40.0,"ri":1.522,"dispersion":0.012,"heat":70.0,"toughness":0.7,"day":Color("e7d7a8"),"warm":Color("ead7b1"),"neutral":Color("e1d5b7")},
+ {"name":"莫桑石","en":"MOISSANITE","origin":"实验室合成 · 碳化硅","rough":6.8,"angle":41.0,"crown":34.0,"ri":2.648,"dispersion":0.104,"heat":180.0,"toughness":1.2,"day":Color("e7e9e1"),"warm":Color("efe2cc"),"neutral":Color("e7e7df")},
+ {"name":"祖母绿","en":"EMERALD","origin":"绿柱石 · 绿色品种","rough":8.7,"angle":43.0,"crown":36.0,"ri":1.580,"dispersion":0.014,"heat":80.0,"toughness":0.65,"day":Color("42b67f"),"warm":Color("63a270"),"neutral":Color("60b58d")},
+ {"name":"粉色尖晶石","en":"SPINEL","origin":"尖晶石族 · 粉色品种","rough":6.9,"angle":42.0,"crown":36.0,"ri":1.719,"dispersion":0.020,"heat":130.0,"toughness":1.3,"day":Color("df7299"),"warm":Color("e48993"),"neutral":Color("db82b0")},
+ {"name":"金色托帕石","en":"TOPAZ","origin":"黄玉 · 金色品种","rough":9.4,"angle":43.0,"crown":38.0,"ri":1.620,"dispersion":0.014,"heat":95.0,"toughness":0.75,"day":Color("e9b96d"),"warm":Color("e5ac58"),"neutral":Color("e6c18b")},
+ {"name":"红宝石","en":"RUBY","origin":"刚玉 · 红色品种","rough":6.7,"angle":40.0,"crown":38.0,"ri":1.765,"dispersion":0.018,"heat":135.0,"toughness":1.5,"day":Color("d94c72"),"warm":Color("e65b55"),"neutral":Color("d9618a")}
+
 ]
-const SHAPES = ["八角单翻", "椭圆刻面", "八重对称刻面", "长方阶梯式", "圆形明亮（心箭试验）"]
+const SHAPES = ["八角单翻", "椭圆刻面", "八重对称刻面", "长方阶梯式", "圆形明亮（心箭试验）", "枕形刻面", "梨形刻面", "马眼刻面", "切角三角形", "六边阶梯式"]
 var shape_id := 0
 var stage: int = Stage.RAW
 var gem_id := 0
@@ -56,7 +63,9 @@ var chipped_tasks: Dictionary = {}
 func _init() -> void: reset(0)
 
 func reset(id: int, selected_shape: int = -1) -> void:
-	if selected_shape >= 0: shape_id = clampi(selected_shape,0,SHAPES.size()-1)
+	if selected_shape >= 0:
+		shape_id = clampi(selected_shape,0,SHAPES.size()-1)
+		imported_cut.clear()
 	gem_id = clampi(id, 0, GEMS.size()-1)
 	stage = Stage.RAW
 	section = 0
@@ -109,6 +118,13 @@ func add_ring(count: int, tier: int, a: float, r: float, y: float, offset: float
 		if shape_id == 3 and offset == 0.0:
 			# Rectangle with clipped corners, with independent side/end distances.
 			radius *= (19.0/30.0 if i%2==1 else 1.0) if count==4 else 1.0
+		if shape_id==5:
+			radius*=pow(pow(absf(cos(az))*1.02,4.0/3.0)+pow(absf(sin(az))*0.95,4.0/3.0),0.75)
+		elif shape_id in [6,7]:
+			var outline: Array=[Vector2(0,38),Vector2(17,13),Vector2(26,-8),Vector2(21,-26),Vector2(0,-32),Vector2(-21,-26),Vector2(-26,-8),Vector2(-17,13)] if shape_id==6 else [Vector2(0,38),Vector2(17,22),Vector2(22,0),Vector2(17,-22),Vector2(0,-38),Vector2(-17,-22),Vector2(-22,0),Vector2(-17,22)]
+			var extent=0.0
+			for point in outline: extent=maxf(extent,point.dot(Vector2(cos(az),sin(az))))
+			radius*=extent/30.0
 		var n := Vector3(sin(deg_to_rad(a))*cos(az), (1.0 if tier<2 else -1.0)*cos(deg_to_rad(a)), sin(deg_to_rad(a))*sin(az))
 		var d: float = sin(deg_to_rad(a))*radius+cos(deg_to_rad(a))*absf(y)
 		if shape_id == 1:
@@ -118,10 +134,30 @@ func add_ring(count: int, tier: int, a: float, r: float, y: float, offset: float
 		var actual_angle := rad_to_deg(atan2(Vector2(n.x,n.z).length(),absf(n.y)))
 		tasks.append({"tier":tier,"section":0 if tier<2 else 1,"index":posmod(int(round(az*96.0/TAU)),96),"azimuth":atan2(n.z,n.x),"angle":actual_angle,"d":d,"name":label})
 
+func cut_name() -> String: return str(imported_cut.get("name",SHAPES[shape_id]))
+
+func apply_cut(design: Dictionary) -> bool:
+	if stage!=Stage.RAW or not design.get("ok",false): return false
+	imported_cut=design.duplicate(true)
+	reset(gem_id)
+	return true
+
 func build_recipe() -> void:
+	if not imported_cut.is_empty():
+		tasks=imported_cut.tasks.duplicate(true)
+		return
 	var pa: float = GEMS[gem_id].angle
 	var ca: float = GEMS[gem_id].crown
-	if shape_id == 3:
+	if shape_id==8:
+		add_ring(3,0,pa,20,2,0,"三角亭主面")
+		add_ring(3,1,90,20,0,0,"三角腰围")
+		add_ring(3,1,90,32,0,PI/3,"护角")
+		add_ring(3,2,ca,20,-2,0,"三角冠面")
+	elif shape_id==9:
+		for band in range(3): add_ring(6,0,pa+band*9.0,[20.0,26.0,30.0][band],[12.0,6.0,2.0][band],0,"六边亭阶梯")
+		add_ring(6,1,90,30,0,0,"六边腰围")
+		for band in range(2): add_ring(6,2,ca-band*10.0,[30.0,22.0][band],[-2.0,-9.0][band],0,"六边冠阶梯")
+	elif shape_id == 3:
 		for band in range(3):
 			add_ring(4,0,pa+band*12.0,[21.0,27.0,30.0][band],[12.0,6.6,2.0][band],0.0,"亭部阶梯%d"%(band+1))
 		add_ring(4,1,90.0,30.0,0.0,0.0,"腰围长短边")
@@ -129,7 +165,7 @@ func build_recipe() -> void:
 		for band in range(3):
 			add_ring(4,2,ca-band*10.0,[30.0,24.0,15.0][band],[-2.0,-7.0,-12.0][band],0.0,"冠部阶梯%d"%(band+1))
 	else:
-		var count := 16 if shape_id==1 else 8
+		var count := 16 if shape_id in [1,5,6,7] else 8
 		add_ring(count,0,pa,30.0,2.0,0.0,"亭部主面")
 		if shape_id==2: add_ring(8,0,pa+4.0,30.0,2.0,PI/8.0,"亭部腰下刻面")
 		if shape_id==4: add_ring(16,0,pa+2.0,30.0,2.0,PI/16.0,"下腰刻面")
@@ -288,7 +324,7 @@ func save_piece() -> bool:
 	if stage != Stage.SHOWCASE or saved or failed: return false
 	var planes: Array = []
 	for f in body: planes.append([f.n.x, f.n.y, f.n.z, f.d, f.tag])
-	collection.append({"gem_id": gem_id, "shape_id": shape_id, "shape": SHAPES[shape_id], "quality": quality, "carats": carats(), "planes": planes, "chips": chips, "crystal_orientation": crystal_orientation, "return": optical_return, "date": Time.get_datetime_string_from_system()})
+	collection.append({"gem_id": gem_id, "shape_id": shape_id, "shape": cut_name(), "recipe": imported_cut, "quality": quality, "carats": carats(), "planes": planes, "chips": chips, "crystal_orientation": crystal_orientation, "return": optical_return, "date": Time.get_datetime_string_from_system()})
 	if not save_collection():
 		collection.pop_back()
 		return false
@@ -362,6 +398,9 @@ func restore_piece(entry: Dictionary) -> bool:
 	var restored:=collection_body(entry)
 	if restored.is_empty(): return false
 	reset(int(entry.gem_id),int(entry.get("shape_id",0)))
+	if entry.get("recipe") is Dictionary and entry.recipe.get("ok",false):
+		imported_cut=entry.recipe.duplicate(true)
+		reset(int(entry.gem_id))
 	body=restored
 	inner_body=restored.duplicate(true)
 	stage=Stage.SHOWCASE

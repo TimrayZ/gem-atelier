@@ -24,6 +24,7 @@ var world
 var encyclopedia
 var collection_room
 var exhibition
+var cut_dialog: FileDialog
 var active_workshop
 var font: SystemFont
 var font_bold: SystemFont
@@ -33,7 +34,7 @@ var angle_slider: HSlider
 var hold_button: Button
 var primary: Button
 var scene_texture: TextureRect
-var toast: String = "每一颗原石，都藏着一种可能。"
+var toast: String = "爷爷去旅行了。这阵子，你和潘潘一起照看工坊。"
 var toast_time: float = 5.0
 var holding := false
 var facet_latched := false
@@ -46,7 +47,7 @@ var audio_playback: AudioStreamGeneratorPlayback
 var audio_phase: float = 0.0
 
 func _ready() -> void:
-	get_window().title = "石间 · Gem Atelier 0.10-dev · 宝石工坊"
+	get_window().title = "石间 · Gem Atelier 0.11 · 石间小铺"
 	font = SystemFont.new()
 	font.font_names = PackedStringArray(["Microsoft YaHei UI", "Microsoft YaHei", "Noto Sans CJK SC", "PingFang SC", "sans-serif"])
 	font_bold = SystemFont.new()
@@ -179,14 +180,56 @@ func build_controls() -> void:
 		var b := button("gem%d" % i, "", Rect2(44, 214 + i * 51, 190, 46), func(): select_gem(id))
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		b.add_theme_constant_override("outline_size", 0)
+	var gem_scroll=ScrollContainer.new()
+	gem_scroll.position=Vector2(44,214)
+	gem_scroll.size=Vector2(190,265)
+	gem_scroll.horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED
+	add_child(gem_scroll)
+	gem_scroll.name="GemScroll"
+	var gem_list=VBoxContainer.new()
+	gem_list.custom_minimum_size=Vector2(174,0)
+	gem_scroll.add_child(gem_list)
+	for i in range(model.GEMS.size()):
+		var gem_button: Button=buttons["gem%d"%i]
+		remove_child(gem_button)
+		gem_button.custom_minimum_size=Vector2(174,46)
+		gem_button.add_theme_font_size_override("font_size",13)
+		gem_list.add_child(gem_button)
 	button("coarse", "01  切面 · 600#", Rect2(866, 212, 210, 29), func(): model.wheel = 0; refresh())
 	button("fine", "02  一次抛光 · 3000#", Rect2(866, 246, 210, 29), func(): model.wheel = 1; refresh())
 	button("finish", "03  终抛 · 材料适配盘", Rect2(866, 280, 210, 29), func(): model.wheel = 2; refresh())
 	for i in range(model.SHAPES.size()):
 		var selected := i
 		button("shape%d"%i,model.SHAPES[i],Rect2(866,216+i*38,210,31),func(): model.reset(model.gem_id,selected); refresh())
+	var shape_scroll=ScrollContainer.new()
+	shape_scroll.position=Vector2(866,216)
+	shape_scroll.size=Vector2(210,176)
+	shape_scroll.horizontal_scroll_mode=ScrollContainer.SCROLL_MODE_DISABLED
+	shape_scroll.name="ShapeScroll"
+	add_child(shape_scroll)
+	var shape_list=VBoxContainer.new()
+	shape_list.custom_minimum_size=Vector2(192,0)
+	shape_scroll.add_child(shape_list)
+	for i in range(model.SHAPES.size()):
+		var b: Button=buttons["shape%d"%i]
+		remove_child(b)
+		b.custom_minimum_size=Vector2(192,31)
+		b.add_theme_font_size_override("font_size",13)
+		shape_list.add_child(b)
 	button("crust", "原石外皮   有", Rect2(44, 491, 190, 33), func(): model.crust = not model.crust; refresh())
 	button("inclusions", "内含物对照 · 关", Rect2(866,73,210,24), func(): world.inclusion_enabled = not world.inclusion_enabled; refresh())
+	button("import_cut","导入切工 .asc / .gcs",Rect2(866,401,210,29),open_cut_import)
+	cut_dialog=FileDialog.new()
+	cut_dialog.title="导入 GemCAD ASC / Gem Cut Studio GCS"
+	cut_dialog.access=FileDialog.ACCESS_FILESYSTEM
+	cut_dialog.file_mode=FileDialog.FILE_MODE_OPEN_FILE
+	cut_dialog.filters=PackedStringArray(["*.asc ; GemCAD 文本切工","*.gcs ; Gem Cut Studio"])
+	cut_dialog.file_selected.connect(func(path):
+		var design=preload("res://scripts/cut_import.gd").read_file(path)
+		if not design.get("ok",false): notify("导入失败："+str(design.error))
+		elif model.apply_cut(design): notify("已导入："+str(design.name)+"；将实际按这些平面加工。")
+		refresh())
+	add_child(cut_dialog)
 	button("rough", "原料形态", Rect2(866,481,210,30), func(): model.rough_kind = 1-model.rough_kind; model.reset(model.gem_id); refresh())
 	button("inspect", "抬起观察 / 拖动旋转", Rect2(44, 523, 190, 32), func(): stop_work(); world.inspection = not world.inspection; refresh())
 	button("enlarge", "放大展台  ↗", Rect2(626,533,190,28), func(): exhibition.open())
@@ -315,6 +358,7 @@ func _notification(what: int) -> void:
 		dragging = false
 
 func _input(event: InputEvent) -> void:
+	if is_instance_valid(cut_dialog) and cut_dialog.visible: return
 	if is_instance_valid(exhibition) and exhibition.visible:
 		exhibition.handle_event(event)
 		return
@@ -448,6 +492,9 @@ func refresh() -> void:
 	if buttons.is_empty(): return
 	var s: int = model.stage
 	var machining: bool = s in [2,3] and not model.failed
+	get_node("GemScroll").visible=s==0
+	get_node("ShapeScroll").visible=s==0
+	buttons.import_cut.visible=s==0
 	for i in range(model.GEMS.size()):
 		buttons["gem%d"%i].visible = s == 0
 		var gem = model.GEMS[i]
@@ -470,7 +517,9 @@ func refresh() -> void:
 	buttons.axis.disabled = holding
 	buttons.pressure.text = "力度 · " + ("重" if model.pressure>1.1 else "轻")
 	buttons.axis.text = "晶向 · " + ["A","B","C"][model.crystal_orientation]
-	buttons.bounces.visible = false
+	buttons.bounces.visible = s == 4
+	buttons.bounces.position=Vector2(626,499)
+	buttons.bounces.size=Vector2(190,28)
 	buttons.style.visible = s == 4
 	buttons.style.text = "风格 · "+("真实" if world.real_mode else "像素")
 	buttons.enlarge.visible = s == 4
@@ -589,8 +638,8 @@ func _draw() -> void:
 	# The little mark is a code-drawn, original pixel diamond.
 	draw_colored_polygon(PackedVector2Array([Vector2(29, 41), Vector2(38, 30), Vector2(56, 30), Vector2(65, 41), Vector2(47, 62)]), MINT)
 	draw_polyline(PackedVector2Array([Vector2(29, 41), Vector2(65, 41), Vector2(47, 62), Vector2(38, 30), Vector2(56, 30), Vector2(47, 62)]), Color("244b42"), 1.0)
-	text_at("石 间", 80, 51, 27, WHITE, true)
-	text_at("GEM ATELIER", 176, 49, 15, MINT)
+	text_at("石间小铺", 80, 51, 24, WHITE, true)
+	text_at("GEM ATELIER", 190, 49, 15, MINT)
 	text_at("选择原料与琢型，开始加工。", 29, 83, 13, MUTED)
 	text_at("宝石加工工坊", 310, 49, 12, MUTED)
 	line(28, 100, 1064)
@@ -611,8 +660,8 @@ func _draw() -> void:
 	draw_left()
 	draw_right()
 	draw_bottom()
-	text_at("石间  /  珑珑和爷爷的宝石工坊 0.10-dev", 28, 710, 10, Color("e7d6ae"))
-	text_at("F8 快速加工 · 点击珑珑查看说明", 862, 710, 10, Color("e7d6ae"))
+	text_at("石间小铺  /  潘潘和你的宝石工坊 0.11", 28, 710, 10, Color("e7d6ae"))
+	text_at("F8 快速加工 · 点击潘潘查看说明", 862, 710, 10, Color("e7d6ae"))
 
 func draw_left() -> void:
 	var gem = model.GEMS[model.gem_id]
@@ -626,7 +675,7 @@ func draw_left() -> void:
 	draw_circle(Vector2(136,255),20,world.displayed_color.darkened(0.3))
 	text_at(gem.name,44,310,19,WHITE,true)
 	text_at(gem.en,44,332,10,MINT)
-	text_at(model.SHAPES[model.shape_id],44,348,10,GOLD)
+	text_at(model.cut_name(),44,348,10,GOLD)
 	text_at(gem.origin,44,366,10,MUTED)
 	line(44,372,190)
 	text_at("原石重量",44,397,12,MUTED)
@@ -644,7 +693,7 @@ func draw_left() -> void:
 		text_at("仅对照同组测试光路" if debug_mode else "详细笔记在「爷爷的手记」",44,566,10,MUTED)
 	else:
 		text_at("亭部先抛 → 转接 → 冠部",44,491,12,GOLD)
-		text_at("%s · %d 面"%[model.SHAPES[model.shape_id],model.tasks.size()],44,514,11,MUTED)
+		text_at("%s · %d 面"%[model.cut_name(),model.tasks.size()],44,514,11,MUTED)
 
 func draw_right() -> void:
 	var s: int = model.stage
@@ -657,9 +706,7 @@ func draw_right() -> void:
 		text_at("本次重量与工序全部损失。",866,344,12,MUTED)
 		return
 	if s == 0:
-		text_at("%d 个加工面"%model.tasks.size(),866,416,13,GOLD)
-		text_at("挑一块，试一个喜欢的形状。",866,435,12,MUTED)
-		text_at("想知道更多？翻翻爷爷的手记。",866,473,11,MUTED)
+		text_at("%d 个加工面"%model.tasks.size(),866,457,13,GOLD)
 		text_at("心箭试验型尚未验证图样。" if model.shape_id==4 else "按 F8 快速加工并比较光彩。",866,525,11,MINT)
 	elif s == 1:
 		text_at("翻到爷爷画工具的那一页。",866,255,14,GOLD)
@@ -723,3 +770,14 @@ func open_encyclopedia() -> void:
 	guide.cancel()
 	encyclopedia.open(model.gem_id)
 	refresh()
+
+func open_character() -> void:
+	stop_work()
+	fast_mode=false
+	guide.present(Dialogue.introduction())
+
+func open_cut_import() -> void:
+	var samples=OS.get_executable_path().get_base_dir().path_join("示例切工")
+	if not DirAccess.dir_exists_absolute(samples): samples=ProjectSettings.globalize_path("res://cuts")
+	if DirAccess.dir_exists_absolute(samples): cut_dialog.current_dir=samples
+	cut_dialog.popup_centered_ratio(0.75)

@@ -6,4 +6,4 @@ Audio: https://incompetech.com/music/royalty-free/mp3-royaltyfree/Carefree.mp3
 Used at reduced playback volume; recording unchanged.
 
 jade.wav / complete.wav: original synthesized sound effects generated for Gem Atelier.
-longlong-blip.wav: original short synthetic dialogue chirp for Longlong; no commercial game voice recordings are used.
+longlong-blip.wav: original short synthetic dialogue chirp for Panpan; no commercial game voice recordings are used.

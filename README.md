@@ -1,95 +1,91 @@
-# 石间 · Gem Atelier
+# 石间小铺 · Gem Atelier
 
-一间安静的小宝石工坊。挑一块原石，切出自己的形状，抛光后把它放到灯下转一转。
-A quiet gemstone workshop: choose a rough stone, cut and polish it, then turn it under the light.
+挑一块原石，慢慢切出自己的宝石。做完换盏灯，转一转，再把它放进绒布收藏室。
+Choose a rough stone, cut and polish it, turn it under different lights, then keep it in your velvet-lined collection.
 
-**当前 main：0.10-dev 源码预览**，已接入默认像素材质、大展台和新版收藏显示。下方截图来自当前源码；已发布的 Windows v0.9.0 保持原样，本轮未创建 Release。
-**Current main: 0.10-dev source preview**, with default pixel materials, the large exhibition and updated collection visuals. Screenshots show this source build; the published Windows v0.9.0 remains unchanged. No new release was created.
+**v0.11.0 Windows 体验版：10 种原料 × 10 种切工。**
+**v0.11.0 Windows preview: 10 materials × 10 cuts.**
 
-**[下载 Windows 游戏 / Download Windows game](https://github.com/TimrayZ/gem-atelier/releases/latest)**
+[下载游戏 / Download](https://github.com/TimrayZ/gem-atelier/releases/latest) · [宣传素材 / Media kit](https://github.com/TimrayZ/gem-atelier/releases/download/v0.11.0/GemAtelier-v0.11.0-MediaKit.zip)
 
-![当前源码版本：像素材质大展台 / Current source build: pixel-material exhibition](docs/images/showcase.png)
+![莫桑石像素展台 / Pixel moissanite exhibition](docs/images/showcase.png)
 
-## 下载已发布版本 / Play the published build
+## 开始游玩 / Play
 
-1. 在 Releases 下载 **GemAtelier-v0.9.0-Windows-x64.zip**，完整解压到一个文件夹。不要选择 GitHub 自动生成的 Source code。
-2. 双击 **GemAtelier.exe**。无需安装 Godot，无需联网。
-3. 左侧选宝石，右侧选琢型。按 **F8** 自动加工，快速进入成品展台；手动操作则跟着右下角按钮推进。
-4. 成品拖动旋转、滚轮缩放，按 **1 / 2 / 3** 比较日光、白炽灯和中性光。喜欢就收入收藏室。
-5. 点击顶部“收藏室”，作品会摆在哑光绒布上。点一颗重新旋转、换光查看，再返回继续加工。
+1. 下载 **GemAtelier-v0.11.0-Windows-x64.zip**，完整解压，双击 **GemAtelier.exe**。无需安装 Godot，无需联网。
+2. 左侧选择原料，右侧选择切工；按右下角按钮逐步加工，或按 **F8** 自动完成后续工序。
+3. 成品拖动旋转、滚轮缩放，按 **1 / 2 / 3** 比较日光、白炽灯与中性光。
+4. 喜欢就收入收藏室。点击收藏中的宝石，可随时重新旋转、换光查看。
 
-Download the Windows ZIP from Releases, extract the entire archive, and run **GemAtelier.exe**. No Godot installation or network connection is needed. Choose a material and cut, then press **F8** for automatic processing. Drag the gem to rotate, scroll to zoom, and press **1 / 2 / 3** for lighting. Save favorites to the velvet-lined collection room and click them to inspect them again.
+Download the Windows ZIP, extract everything, and run **GemAtelier.exe**. Choose a material and cut, follow the work button or press **F8** for automatic processing. Drag to rotate, scroll to zoom, use **1/2/3** for lights, and save finished gems to reopen from the collection.
 
-目标平台：Windows 10/11 64 位、支持 OpenGL 3.3 的显卡。光学展台较吃 GPU，当前源码的真实通道可切“画质 · 流畅”；v0.9.0 则可减少光路次数或切换刻面对照。目前尚未在其他电脑的各种显卡上验证。
-Targets 64-bit Windows 10/11 with OpenGL 3.3. The optical viewer is GPU intensive: choose the real channel’s performance quality in the source preview, or fewer bounces / flat facets in v0.9.0. Hardware compatibility beyond the development machine remains unverified.
+Windows 10/11 x64，显卡需支持 OpenGL 3.3。卡顿可把“反射上限”调到 6；像素与真实通道都提供 6/12/20 档。尚未在多种电脑配置上验证。
+Requires 64-bit Windows 10/11 and OpenGL 3.3. Both render channels expose 6/12/20 reflection limits; try 6 for performance. Compatibility across other hardware remains unverified.
 
-## 工坊里有什么 / Features
+## 工坊 / Workshop
 
-- 五种材料：亚历山大变石、紫水晶、蓝宝石、钻石、透明正长石；各有原生晶形与磨圆原料示例。
-- 五种琢型：八角、椭圆、八重对称、长方阶梯、圆形明亮（心箭试验）。
-- 逐面移除真实体积：切歪会留下不同形状，崩角会留下缺角，可以继续完成有瑕疵的作品。
-- 每面一次抛光；F8 自动完成后续工序；滴水冷却、轻／重压和简化晶向选择。
-- 默认像素材质：大块刻面、背面明暗、硬边高光与随旋转变化的火彩；变石随光源呈绿／红紫色。
-- 完工与收藏重看直接进入大展台；按 **R** 或点“风格”切换真实通道，渲染区域为纯色背景。
-- 真实通道保留光谱折射、反射、全反射、色散、路径吸收与可选内含物。
-- 左侧“百科”：组成、原料与成品形状、硬度、韧性、解理、折射率、拟合吸收谱。
-- 独立绒布收藏室：使用已保存真实几何渲染缩略图，可重新查看作品；浏览不会覆盖正在加工的石头。
-- 小龙珑珑平时安静，点击角色或手记才会介绍；她也正和你一起学习。
+- **10 种原料**：亚历山大变石、紫水晶、蓝宝石、钻石、透明正长石、合成莫桑石、祖母绿、粉色尖晶石、金色托帕石、红宝石。
+- **10 种切工**：八角单翻、椭圆、八重对称、长方阶梯、圆形明亮（心箭试验）、枕形、梨形、马眼、切角三角、六边阶梯。圆形明亮尚未验证达到八心八箭。
+- 原生晶形与磨圆料可选；切削逐面移除实际体积，切歪、崩角也会保留在作品中。每面一次抛光，支持滴水冷却与压力选择。
+- 默认光谱像素材质，保留清晰刻面、通透感、反光与转动火彩。钻石随照明呈色，莫桑石使用更高色散，变石在日光和白炽灯下改变颜色。
+- 大展台与独立绒布收藏室；按 **R** 切换像素／真实通道，两者均为纯色背景。
+- 左侧百科收录组成、典型晶形、硬度、韧性、解理、折射率与拟合吸收谱。
+- 支持导入 **GemCAD .asc / Gem Cut Studio .gcs** 常见平面刻面子集。压缩包“示例切工”包含两份等价的原创 CC0 练习设计。
 
-Five materials and five cuts; progressive solid cutting with permanent mistakes and chips; one polishing pass; fast processing; a mineral encyclopedia; default pixel materials with changing fire and alexandrite illumination response; a larger exhibition with an optional spectral channel and plain background; matching saved-shape thumbnails; and an optional quiet dragon guide.
+Ten materials include alexandrite, amethyst, sapphire, diamond, orthoclase, synthetic moissanite, emerald, pink spinel, golden topaz and ruby. Ten cuts include octagonal, oval, eightfold, rectangular step, experimental round brilliant, cushion, pear, marquise, clipped triangle and hexagonal step. Actual progressive solid cutting preserves mistakes and chips. Features include one polishing pass, cooling and pressure controls, a mineral encyclopedia, a large pixel/spectral viewer, saved-shape collections, and ASC/GCS import with original CC0 examples. The experimental brilliant is not verified as hearts and arrows.
 
 ![收藏室 / Collection room](docs/images/collection.png)
 
 | 操作 / Control | 功能 / Action |
 | --- | --- |
 | F8 | 开始／停止快速加工 / Start or stop fast processing |
-| 空格或按住加工按钮 / Space or hold work | 加工当前面 / Work on current face |
+| 空格或按住加工按钮 / Space or hold work | 加工当前面 / Work on current facet |
 | ← / → | 切换加工面 / Select facet |
 | 拖动 / Drag | 旋转观察 / Rotate |
 | 滚轮 / Wheel | 缩放 / Zoom |
 | 1 / 2 / 3 | 切换照明 / Change illuminant |
 | H / J | 冠部／亭部正视 / Crown or pavilion view |
-| R（大展台 / large viewer） | 像素／真实材质 / Pixel or spectral material |
-| Esc | 返回或关闭当前页面 / Back or close the current page |
+| R（大展台 / large viewer） | 像素／真实通道 / Pixel or spectral channel |
+| Esc | 返回或关闭页面 / Back or close |
 
-## 存档 / Saves
+## 潘潘与小铺 / Panpan and the shop
 
-在展台点击“收藏真实切工”才会保存作品。存档和偏好位于 `%APPDATA%/Godot/app_userdata/石间 · Gem Atelier/`；更新游戏可以保留。正在加工的石头不会自动保存。收藏室查看旧作品后，右下角可返回收藏室，再回到原来的工坊进度。
-Only collected finished pieces are saved. Saves and preferences live in the Godot user-data directory above and survive replacing the game folder. Work in progress is not autosaved. Inspecting a collected gem preserves the current workshop session.
+中文全名 **格蕾丝·潘多拉·坦格利安**，英文 **Grace Pandora Targaryen**，昵称 **潘潘 / Panpan**。她是爷爷当年救助的小龙，如今 26 岁，爱收集亮晶晶的东西，也想和你一起学加工。主角 24 岁，回乡替健康、外出旅行的爷爷照看一季小铺。
+Her full name is **Grace Pandora Targaryen**, Chinese **格蕾丝·潘多拉·坦格利安**, nickname **Panpan**. The dragon your grandfather once rescued is now 26, loves collecting shiny things, and wants to learn gem cutting with you. The 24-year-old protagonist returns home to look after the shop while their healthy grandfather travels.
+
+潘潘默认安静，点击她才会用俏皮拟声打招呼；再点击查看详细介绍。介绍不阻塞加工，调试选项可跳过。[角色与故事设定](docs/角色与故事方案.md)。
+Panpan stays quiet until clicked, then greets you with playful synthesized chatter. Click again for details. Introductions do not gate processing and can be skipped in debug mode. See the linked character and story notes.
+
+## 切工导入与存档 / Import and saves
+
+在挑原石阶段点击“导入切工”，选择 .asc 或 .gcs。支持角度、中心距、分度与 GCS 明确法线；尺寸会归一化，使用当前材料的折射率。暂不支持二进制 .gem、平底底尖、磨砂、非零 ASC 分度偏移或缺少深度的 GCS；会给出错误提示。详细边界与来源见[0.11 发布说明](docs/发布说明0.11.md)。
+At the rough stage, choose Import and select ASC or GCS. Common angle/depth/index facets and explicit GCS normals are supported, normalized to game scale, using the selected material’s RI. Binary GEM, flat culets, frosting, nonzero ASC gear offsets and GCS without depth are currently unsupported and reported. See the release notes for details and format sources.
+
+在展台点击“收藏真实切工”保存作品，包括导入配方与实际切后形状。存档和偏好仍位于 `%APPDATA%/Godot/app_userdata/石间 · Gem Atelier/`，兼容原有目录。加工中的石头不会自动保存；浏览收藏不会覆盖当前加工进度。
+Collect finished pieces to save the imported recipe and actual geometry. Saves and preferences retain the original directory above. Work in progress is not autosaved; browsing collections preserves the current workshop session.
 
 ## 模拟范围 / Simulation limits
 
-默认像素通道使用真实切形上的主透射路径、有限全反射、分段明暗和美术调色；把光程压缩到便于阅读的有限色阶。变石调色由光源光谱与同一组拟合吸收参数共同驱动。它不是拟真画面后套马赛克；少量火彩用不同折射率光线的出射差定位。
-The default pixel channel uses the cut solid’s primary transmitted path, limited total internal reflection, stepped values and art palettes, compressing path lengths for readable colour bands. Alexandrite palettes follow source spectra and shared fitted absorption. Fire placement follows differing refractive-index exit paths.
+两个通道均沿实际凸实体追踪光路，包含 Snell 折射、Fresnel 分配、全反射、色散与 Beer–Lambert 路径吸收。像素通道使用 12 波段并量化明暗／颜色，真实通道使用 20 波段。呈色由光源光谱与拟合吸收共同决定；更高色散的火彩仍依赖切工、观察角与光源。
+Both channels trace the actual convex solid using Snell refraction, Fresnel splitting, total internal reflection, dispersion and Beer–Lambert path absorption. Pixel mode uses 12 spectral bands and quantized values/colours; detailed mode uses 20 bands. Source spectra and fitted absorption determine colour; visible fire depends on cut, view and illumination.
 
-真实通道是自写的凸多面体光线追踪原型：实际切后边界、Snell 折射、Fresnel 能量分配、全反射、20 波段色散与 Beer–Lambert 吸收。吸收谱为拟合，照明为黑体近似；未完整模拟偏振、双折射、多色性、完整间接照明和焦散。反射次数有限，仍可能有细小混叠或转动闪烁。减少反射次数不能保证消除摩尔纹。圆形明亮配方尚未验证达到八心八箭。
-The optional spectral channel uses a custom convex-solid ray tracer with actual cut boundaries, Snell refraction, Fresnel splitting, total internal reflection, 20 spectral bands and Beer–Lambert absorption. Absorption is fitted and illumination approximates blackbody spectra. Full polarization, birefringence, pleochroism, indirect illumination and caustics are not implemented. Fine aliasing or shimmer can remain; fewer bounces do not guarantee its removal. The round-brilliant recipe is not a verified hearts-and-arrows cut.
+吸收谱、晶向风险与温度阈值是游戏近似，未完整实现偏振、双折射、多色性、间接照明与焦散。细小混叠或转动闪烁仍可能出现。原石是简化单晶；缺角通过凸截面移除体积，不模拟凹入贝壳状破口。参数不用于现实加工指导。
+Spectra, cleavage risk and heat thresholds are gameplay approximations. Full polarization, birefringence, pleochroism, indirect illumination and caustics remain incomplete. Fine aliasing or shimmer may remain. Roughs are simplified single crystals; chips remove volume with convex planes rather than concave fractures. Parameters are not manufacturing guidance.
 
-缺角会实际截去体积，尚不能生成凹入的贝壳状破口。晶向风险、评分和温度阈值是游戏设计，不是实际加工指南。硬度不等于韧性；玻璃也不能一概认定无法切刻面。
-Chips remove actual volume through convex truncation, rather than modeling concave conchoidal fractures. Risk, score and heat thresholds are gameplay values, not manufacturing guidance. Hardness differs from toughness; glass can be faceted under suitable conditions.
+## 源码与验证 / Source and validation
 
-## 从源码运行 / Source
+用 **Godot 4.7.2 Standard** 打开 `gem-atelier/project.godot`，导入后按 F5。Compatibility 渲染器，无需 .NET。Windows 导出需要同版本官方模板。
+Open `gem-atelier/project.godot` in Godot 4.7.2 Standard, allow imports and press F5. Compatibility rendering requires no .NET. Export needs matching official templates.
 
-用 **Godot 4.7.2 Standard** 打开 `gem-atelier/project.godot`，等待导入后按 F5。Compatibility 渲染器，无需 .NET。Windows 导出需同版本官方模板，预设见 `gem-atelier/export_presets.cfg`。
-Open `gem-atelier/project.godot` in Godot 4.7.2 Standard, allow imports, then press F5. Compatibility rendering requires no .NET. Windows export needs matching official templates; see the included export preset.
-
-模型测试：`godot --headless --path gem-atelier --script res://tests/test_workshop.gd`。另有 `test_shapes.gd`、`test_damage.gd` 和图形流程测试 `test_collection.gd`；图形测试需要 OpenGL 环境。
-Run the command above for model tests; additional scripts cover all material/cut combinations, damage and collection browsing. Graphical tests require OpenGL.
-
-## 下一版故事方案 / Story proposal
-
-[Grace Pandora 坦格利安与工坊故事草案](docs/角色与故事方案.md)：昵称“潘潘”，24 岁主角与外出旅行的爷爷，以及不阻塞操作的开场自我介绍。本次仅提交方案，现有游戏剧情与 v0.9.0 下载版保持原样。
-[Character and story proposal](docs/角色与故事方案.md): Grace Pandora Targaryen, nicknamed Panpan; a 24-year-old protagonist; a grandfather away on a journey; and an unobtrusive opening introduction. This is a proposal only; the current game narrative and v0.9.0 download remain unchanged.
-
-[像素材质与大展台接入说明](docs/像素化展台方案.md)：当前源码已接入主游戏与收藏室，含变石双光源及真实通道截图、验证与模型边界。
-[Pixel material and exhibition integration](docs/像素化展台方案.md): integrated into the source game and collection room, with alexandrite lighting comparisons, the spectral channel, validation and model limits.
+全部 100 种材料／切工组合通过；5296 项模型检查零失败。导入等价几何、加工、保存恢复，以及收藏重看、缺角和进度恢复均有回归检查。测试入口：`test_workshop.gd`、`test_shapes.gd`、`test_cut_import.gd`、`test_first_release.gd`、`test_collection.gd`。运行例：`godot --headless --path gem-atelier --script res://tests/test_workshop.gd`；图形测试需要 OpenGL。
+All 100 material/cut combinations and 5296 model checks pass. Regression scripts cover imported geometry, processing, persistence, collection reopening, chips and workshop restoration. Run the command above for model tests; graphical tests require OpenGL.
 
 ## 署名与许可 / Credits and licenses
 
 - **Carefree — Kevin MacLeod (incompetech.com)**，音乐适用 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)，录音未修改、降低播放音量。[原始来源 / Original source](https://remote.incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1400037) · [完整音频署名 / Audio credits](gem-atelier/audio/CREDITS.md).
 - [Godot Engine](https://godotengine.org/license/)，MIT 及相关第三方许可；Windows 下载附带运行时许可文本。MIT and third-party runtime notices accompany the Windows download.
 - GPT 助手立绘按用户提供的角色参考由 AI 生成。GPT assistant portrait generated with AI from a user-provided character reference.
-- 矿物数据 / Mineral facts: [Handbook of Mineralogy](https://www.handbookofmineralogy.org/)、[GIA](https://www.gia.edu/)。[本版研究与验证 / Research and validation](docs/发布说明0.9.md).
+- 矿物数据 / Mineral facts: [Handbook of Mineralogy](https://www.handbookofmineralogy.org/)、[GIA](https://www.gia.edu/)。[本版研究与验证 / Research and validation](docs/发布说明0.11.md).
 
 原始代码采用 [MIT](LICENSE)。音乐与涉及第三方角色参考的图像不在代码许可授权范围内。
 Original code is [MIT licensed](LICENSE). Music and third-party rights associated with the character-reference artwork are excluded from that source-code license.

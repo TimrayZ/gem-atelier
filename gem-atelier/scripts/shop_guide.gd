@@ -57,9 +57,9 @@ func _ready() -> void:
 	portrait.gui_input.connect(func(e):
 		if e is InputEventMouseButton and e.pressed and e.button_index==MOUSE_BUTTON_LEFT:
 			if greeting: open_page()
-			elif not busy: host.open_notes())
+			elif not busy: host.open_character())
 	add_child(portrait)
-	var caption:=label_at("珑珑的旧书角",Vector2(280,553),12)
+	var caption:=label_at("潘潘 · 点击认识一下",Vector2(280,553),12)
 	caption.add_theme_color_override("font_color",Color("f3e7ce"))
 	add_child(caption)
 	caption.name="Caption"
@@ -86,9 +86,9 @@ func _ready() -> void:
 	overlay.add_child(page)
 	detail_portrait=image_at(Vector2(18,83),Vector2(185,253))
 	page.add_child(detail_portrait)
-	var name_tag:=label_at("珑珑",Vector2(80,343),21)
+	var name_tag:=label_at("潘潘",Vector2(80,343),21)
 	page.add_child(name_tag)
-	page.add_child(label_at("守着爷爷的旧书，一起学。",Vector2(24,375),12))
+	page.add_child(label_at("爷爷旅行去了，咱们试着来。",Vector2(24,375),12))
 	title_text=label_at("",Vector2(27,24),22)
 	page.add_child(title_text)
 	page.add_child(label_at("工坊手记 · 内容较长时可上下滚动",Vector2(225,58),11))
@@ -170,11 +170,11 @@ func _process(delta: float) -> void:
 	portrait.position.y=388+sin(Time.get_ticks_msec()*0.002)*1.5
 	if not busy or not greeting: return
 	elapsed+=delta
-	var count:=mini(topic_data.greeting.length(),int(elapsed/0.065))
+	var count:=mini(topic_data.greeting.length(),int(elapsed/0.055))
 	bubble_text.visible_characters=count
 	if count!=last_character and count%2==0 and count<topic_data.greeting.length():
-		if not host.mute and AudioServer.get_driver_name()!="Dummy":
-			voice.pitch_scale=randf_range(0.92,1.48)
+		if not host.mute and (AudioServer.get_driver_name()!="Dummy" or OS.get_cmdline_args().has("--write-movie")):
+			voice.pitch_scale=[1.12,1.45,1.22,1.62,1.30][posmod(count/2,5)]
 			voice.play()
 	last_character=count
 	portrait.position.y+=sin(elapsed*19)*2.0
