@@ -17,7 +17,7 @@ func _ready() -> void:
 	panel.position = Vector2(115,55)
 	panel.size = Vector2(890,610)
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color("f4e7c9")
+	style.bg_color = Color("eef0e6")
 	style.border_color = Color("9c8059")
 	style.set_border_width_all(3)
 	panel.add_theme_stylebox_override("panel",style)
@@ -39,7 +39,7 @@ func _ready() -> void:
 	page.size = Vector2(830,380)
 	page.bbcode_enabled = true
 	page.add_theme_font_size_override("normal_font_size",15)
-	page.add_theme_color_override("default_color",Color("4b3629"))
+	page.add_theme_color_override("default_color",Color("38473f"))
 	page.meta_clicked.connect(func(url): OS.shell_open(str(url)))
 	add_child(page)
 	plot=Node2D.new()
@@ -62,7 +62,7 @@ func update_page() -> void:
 func draw_spectrum() -> void:
 	if not is_instance_valid(page): return
 	var font = host.font
-	plot.draw_string(font,Vector2(145,545),"游戏吸收模型 · 非实测谱（系数范围 0–0.10）",HORIZONTAL_ALIGNMENT_LEFT,-1,14,Color("6d805c"))
+	plot.draw_string(font,Vector2(145,545),"游戏吸收模型 · 非实测谱（系数范围 0–0.10）",HORIZONTAL_ALIGNMENT_LEFT,-1,14,Color("718c79"))
 	var origin := Vector2(180,618)
 	plot.draw_line(origin,origin+Vector2(730,0),Color("9c8059"))
 	plot.draw_line(origin,origin+Vector2(0,-60),Color("9c8059"))
@@ -70,4 +70,4 @@ func draw_spectrum() -> void:
 	for band in range(20):
 		points.append(origin+Vector2(730.0*band/19.0,-Data.bands(selected)[band]*600.0))
 	plot.draw_polyline(points,Color("826695"),2.0,true)
-	plot.draw_string(font,Vector2(180,642),"408 nm                         绿 / 黄吸收区                         693 nm",HORIZONTAL_ALIGNMENT_LEFT,-1,13,Color("8a745a"))
+	plot.draw_string(font,Vector2(180,642),"408 nm                         绿 / 黄吸收区                         693 nm",HORIZONTAL_ALIGNMENT_LEFT,-1,13,Color("718078"))

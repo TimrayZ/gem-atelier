@@ -1,8 +1,5 @@
-Mode: built-in image_gen tool, reference-guided generation, transparent background.
-Final asset: `longlong-guide.png`.
-Character reference: the white-haired, lavender-eyed dragon girl supplied by the user in this conversation.
-User's story: a little dragon rescued by the former shopkeeper, who loves shining gems, keeps his books and learns together with the player. The illustration is a stylized adaptation in practical workshop clothing.
+# 潘潘立绘 / Panpan portrait
 
-Exact generation prompt:
+`panpan-child.png` 使用内置 imagegen 生成，以现有白发龙角角色为身份参考，以用户提供的圆脸无嘴表情为神态参考。提示词要求不到十岁的儿童形象、白色与淡紫色长发、紫眼、龙角、结饰、婴儿肥、无嘴、完整日常服、手持宝石与书、复古柔和像素风和透明背景。
 
-Use case: stylized-concept, pixel-art game character asset. Input image is CHARACTER REFERENCE, not an edit target. Adapt the SAME dragon girl identity from the supplied reference into a cozy vintage gem workshop shopkeeper portrait: preserve long white hair with pale lavender shadows, large curved segmented white dragon horns, pale purple half-lidded eyes, sleepy deadpan expression with small warm smile, pointed ears, white Chinese knot ornament and dangling pale tassel beside the hair, and the distinctive curved ahoge. Cute chibi proportions, but a fully clothed adult fantasy shopkeeper. Give her a practical ivory long-sleeved blouse, muted sage-green and warm brown gem-cutter apron, a little brass brooch, one hand raised in a relaxed small greeting, other hand holding a rough purple crystal. One single waist-up bust including both hands, fully visible horns and ahoge with margins. Detailed but clean deliberate PIXEL ART with crisp square pixels, warm dark brown/lavender outline, limited muted palette; readable when displayed 150px high. No text, no frame, no symbols, no background or scenery: genuinely transparent alpha background. No sexualization, no low neckline. Keep her reference identity rather than the prior temporary teal-haired character.
+Generated with the built-in imagegen tool using the earlier dragon portrait for character identity and the user-provided image for expression. Prompt: child under ten, lavender-white hair and horns, violet eyes, round cheeks, no drawn mouth, fully covered practical clothing, book and crystal, muted vintage pixel art, transparent background.

@@ -23,13 +23,13 @@ func label_at(text: String,pos: Vector2,size_px: int) -> Label:
 	l.text=text
 	l.position=pos
 	l.add_theme_font_size_override("font_size",size_px)
-	l.add_theme_color_override("font_color",Color("503b2e"))
+	l.add_theme_color_override("font_color",Color("3d5148"))
 	return l
 
 func panel_style() -> StyleBoxFlat:
 	var s:=StyleBoxFlat.new()
-	s.bg_color=Color("f4e6c6")
-	s.border_color=Color("886142")
+	s.bg_color=Color("edf1e4")
+	s.border_color=Color("81998a")
 	s.set_border_width_all(3)
 	s.set_corner_radius_all(3)
 	s.shadow_color=Color(0.15,0.08,0.04,0.3)
@@ -42,7 +42,7 @@ func image_at(pos: Vector2,dim: Vector2) -> TextureRect:
 	p.stretch_mode=TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	p.position=pos
 	p.size=dim
-	p.texture=preload("res://art/longlong-guide.png")
+	p.texture=preload("res://art/panpan-child.png")
 	p.set_deferred("size",dim)
 	p.texture_filter=CanvasItem.TEXTURE_FILTER_NEAREST
 	p.mouse_filter=Control.MOUSE_FILTER_IGNORE
@@ -60,7 +60,7 @@ func _ready() -> void:
 			elif not busy: host.open_character())
 	add_child(portrait)
 	var caption:=label_at("潘潘 · 点击认识一下",Vector2(280,553),12)
-	caption.add_theme_color_override("font_color",Color("f3e7ce"))
+	caption.add_theme_color_override("font_color",Color("edf3e8"))
 	add_child(caption)
 	caption.name="Caption"
 	bubble=Panel.new()
@@ -96,7 +96,7 @@ func _ready() -> void:
 	body_text.position=Vector2(225,83)
 	body_text.size=Vector2(520,220)
 	body_text.add_theme_font_size_override("normal_font_size",17)
-	body_text.add_theme_color_override("default_color",Color("594334"))
+	body_text.add_theme_color_override("default_color",Color("46574d"))
 	body_text.bbcode_enabled=false
 	page.add_child(body_text)
 	var accept_button:=Button.new()

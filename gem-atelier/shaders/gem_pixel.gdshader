@@ -33,22 +33,15 @@ float source_spd(float l) {
 	float nm = l*0.001;
 	return pow(0.56/nm,5.0)*(exp(14387.77/(0.56*temp))-1.0)/(exp(14387.77/(nm*temp))-1.0);
 }
-// Plain studio: no curtain, floor, folds, rings, texture or scenery in the rays.
-// Pixel-art light shapes: few flat light regions, no textured environment.
+// A broad studio card gives coherent facet reflections; a small light adds fire.
+// The base is a deliberately simple ambient approximation, not a sampled HDRI.
 float environment(vec3 point,vec3 d){
- float broad=step(0.78,dot(d,normalize(vec3(-0.6,-0.7,0.6))));
- float rim=step(0.88,dot(d,normalize(vec3(0.8,-0.25,-0.3))));
- float glint=step(0.985,dot(d,normalize(vec3(-0.20,-0.42,0.88))));
- float sparkle=step(0.988,dot(d,normalize(vec3(0.55,0.25,0.80))));
- float sparkle2=step(0.990,dot(d,normalize(vec3(-0.75,0.32,0.58))));
- float base=0.12+broad*1.65+rim*1.35+glint*6.0+sparkle*5.0+sparkle2*4.5+step(0.72,dot(d,normalize(vec3(0.2,0.65,0.7))))*1.0;
- float left=step(0.78,dot(d,normalize(vec3(-0.82,0.25,0.52))));
- float right=step(0.78,dot(d,normalize(vec3(0.78,-0.15,0.60))));
- float overhead=step(0.82,dot(d,normalize(vec3(0.0,-0.92,0.40))));
- float narrow=step(0.965,dot(d,normalize(vec3(0.55,0.72,0.42))));
- return base+left*0.8+right*0.8+overhead*0.8+narrow*4.0;
+ float softbox=step(0.70,dot(d,normalize(vec3(-0.6,-0.7,0.6))));
+ // Slightly wider response lets the existing highlight travel across more facets.
+ float glint_limit=0.982;
+ float glint=step(glint_limit,dot(d,normalize(vec3(-0.20,-0.42,0.88))));
+ return 0.42+softbox*2.1+glint*4.2;
 }
-
 bool entry_hit(vec3 o, vec3 d, out float distance, out vec3 normal) {
 	float near_t = 0.0;
 	float far_t = 1000.0;
@@ -141,7 +134,9 @@ vec3 spectral_material(vec3 point,vec3 d,vec3 normal){
  for(int band=0;band<12;band++){
   float l=412.5+float(band)*25.0;
   vec3 cmf=observer(l);float spd=source_spd(l);
-  float cauchy=dispersion/(1.0/pow(0.4308,2.0)-1.0/pow(0.6867,2.0));
+  // Pixel presentation exaggerates wavelength separation; the realistic shader keeps the measured value.
+  float dispersion_scale=1.35;
+  float cauchy=dispersion*dispersion_scale/(1.0/pow(0.4308,2.0)-1.0/pow(0.6867,2.0));
   float ri=refractive_index+cauchy*(1.0/pow(l*0.001,2.0)-1.0/pow(0.589,2.0));
   float position=clamp((l-407.5)/15.0,0.0,19.0);
   int lower=int(floor(position));int upper=min(lower+1,19);
@@ -163,13 +158,15 @@ vec3 spectral_material(vec3 point,vec3 d,vec3 normal){
  // Expand subtle spectral differences into readable pixel-art flashes.
  float average=(hue.r+hue.g+hue.b)/3.0;
  float fire_strength=clamp(dispersion/0.044,0.0,2.0);
- hue=clamp(vec3(average)+(hue-vec3(average))*(1.0+1.25*fire_strength),vec3(0.0),vec3(1.0));
+  float fire_boost=1.75;
+ hue=clamp(vec3(average)+(hue-vec3(average))*(1.0+fire_boost*fire_strength),vec3(0.0),vec3(1.0));
  vec3 body=max(xyz_to_rgb(body_xyz),vec3(0.0))/pow(max(xyz_to_rgb(white_xyz),vec3(0.08)),vec3(0.75));
  body/=max(0.001,max(body.r,max(body.g,body.b)));
  float chroma=max(body.r,max(body.g,body.b))-min(body.r,min(body.g,body.b));
  // An illustrative material colour derived from absorption × source SPD,
  // never a per-gem RGB paint. Colourless materials retain the traced fire hue.
- if(chroma>0.25 && max(rgb.r,max(rgb.g,rgb.b))<0.92)hue=mix(hue,pow(body,vec3(1.25)),0.65);
+  float body_mix=0.52;
+ if(chroma>0.25 && max(rgb.r,max(rgb.g,rgb.b))<0.92)hue=mix(hue,pow(body,vec3(1.25)),body_mix);
  // Keep faint tints neutral and remove some grey from distinct colours.
  float purity=max(hue.r,max(hue.g,hue.b))-min(hue.r,min(hue.g,hue.b));
  float colour_weight=smoothstep(0.06,0.25,purity);
@@ -178,7 +175,13 @@ vec3 spectral_material(vec3 point,vec3 d,vec3 normal){
  hue=mix(vec3(1.0),clean_hue,colour_weight);
  hue=floor(hue*10.0+0.5)/10.0;
  float value=floor(peak*6.0+0.5)/6.0;
- return hue*value;
+ vec3 result=hue*value;
+ float luminance=dot(result,vec3(0.2126,0.7152,0.0722));
+ float level=floor(luminance*5.0+0.5)/5.0;
+ vec3 ramp=mix(vec3(0.18,0.25,0.35),vec3(0.94,0.96,0.92),level);
+ if(chroma>0.25)ramp=mix(ramp,body*mix(0.38,1.12,level),0.75);
+  float flash=smoothstep(0.17,0.46,purity)*smoothstep(0.3,0.7,peak);
+ return clamp(mix(ramp,result,flash),vec3(0.0),vec3(1.0));
 }
 bool pixel_hit(vec2 pixel,out vec3 p,out vec3 n,out vec3 d){
  vec3 o=vec3(0,0,220);d=normalize(vec3((pixel-center)/gem_scale,-220.0));float t;
@@ -196,11 +199,18 @@ void fragment(){
    vec3 neighbour_point;vec3 neighbour_normal;vec3 neighbour_ray;
    bool neighbour_hit=pixel_hit(pixel+axis*side*art_pixel,neighbour_point,neighbour_normal,neighbour_ray);
    // Mark the inner silhouette and only one side of each shared facet edge.
-   if(!neighbour_hit || (side>0.0 && dot(n,neighbour_normal)<0.982)) outline=true;
+   if(!neighbour_hit || (side>0.0 && dot(n,neighbour_normal)<0.97)) outline=true;
+
   }
  }
  if(!hit)COLOR=vec4(0.0);
- else if(outline)COLOR=vec4(outline_colour,1.0);
+ else if(outline){
+  // Keep a consistent material hue while letting major ridges respond to light.
+  float facing=dot(n,normalize(vec3(-0.45,-0.65,0.80)));
+  float shade=facing>0.35 ? 1.10 : (facing< -0.2 ? 0.85 : 0.98);
+  vec3 soft_line=mix(outline_colour,vec3(0.62,0.70,0.72),0.42);
+  COLOR=vec4(clamp(soft_line*shade,vec3(0.0),vec3(1.0)),1.0);
+ }
  else{
   // Group pixels by both their front facet and the first internal facet reached.
   vec3 internal_ray=refract(d,n,1.0/refractive_index);

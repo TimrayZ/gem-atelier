@@ -4,6 +4,7 @@ var host
 var viewport: SubViewport
 var optical: ColorRect
 var gem_material: ShaderMaterial
+var backdrop_material: ShaderMaterial
 var display: TextureRect
 var title: Label
 var subtitle: Label
@@ -15,22 +16,24 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter=Control.MOUSE_FILTER_STOP
 	var bg:=ColorRect.new()
-	bg.color=Color("dfccaa")
+	bg.color=Color("d7dbce")
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
 	title=Label.new()
 	title.position=Vector2(30,24)
 	title.add_theme_font_size_override("font_size",25)
-	title.add_theme_color_override("font_color",Color("4b3629"))
+	title.add_theme_color_override("font_color",Color("38473f"))
 	add_child(title)
 	subtitle=Label.new()
 	subtitle.position=Vector2(31,72)
-	subtitle.add_theme_color_override("font_color",Color("80684e"))
+	subtitle.add_theme_color_override("font_color",Color("718078"))
 	add_child(subtitle)
 	var backdrop:=ColorRect.new()
 	backdrop.position=Vector2(28,111)
 	backdrop.size=Vector2(1064,518)
-	backdrop.color=Color("23383d")
+	backdrop_material=ShaderMaterial.new()
+	backdrop_material.shader=load("res://shaders/exhibition_shadow.gdshader")
+	backdrop.material=backdrop_material
 	add_child(backdrop)
 	viewport=SubViewport.new()
 	viewport.transparent_bg=true
@@ -135,10 +138,34 @@ func update_view() -> void:
 	var key: Array=[m.generation,m.gem_id,m.revision,w.yaw,w.tilt,w.light_mode,w.real_mode,w.zoom,w.max_bounces,w.inclusion_enabled,m.thermal_damage]
 	if key==cached_key: return
 	cached_key=key
+	var bounding_radius := 0.0
+	var rotated_planes := PackedVector4Array()
+	for face in m.body:
+		var normal: Vector3 = face.n.rotated(Vector3.UP,w.yaw).rotated(Vector3.RIGHT,w.tilt)
+		rotated_planes.append(Vector4(normal.x,normal.y,normal.z,face.d))
+		for vertex in face.v:
+			bounding_radius=maxf(bounding_radius,vertex.length())
+	# A rotation-independent bound keeps the gem's centre and scale stable.
+	var perspective_radius: float = bounding_radius*220.0/sqrt(maxf(10000.0,220.0*220.0-bounding_radius*bounding_radius))
+	var scale: float = minf(2.8*w.zoom,88.0/maxf(perspective_radius,1.0))
+	var floor_y: float = 0.91
+	backdrop_material.set_shader_parameter("rotation_angle",w.yaw)
+	backdrop_material.set_shader_parameter("floor_y",floor_y)
+	backdrop_material.set_shader_parameter("floor_width",clampf(perspective_radius*scale/425.0,0.08,0.4))
+	backdrop_material.set_shader_parameter("receiver_y",bounding_radius+24.0/maxf(scale,0.01))
+	backdrop_material.set_shader_parameter("illuminant",w.light_mode)
+	var tint: Color = m.GEMS[m.gem_id][["day","warm","neutral"][w.light_mode]]
+	if m.gem_id in [3,5]: tint=Color.WHITE
+	backdrop_material.set_shader_parameter("material_tint",Vector3(tint.r,tint.g,tint.b))
+	backdrop_material.set_shader_parameter("pixel_style",not w.real_mode)
+	backdrop_material.set_shader_parameter("plane_count",mini(rotated_planes.size(),256))
+	rotated_planes.resize(256)
+	backdrop_material.set_shader_parameter("planes",rotated_planes)
 	viewport.size=Vector2i(1064,518) if w.real_mode else Vector2i(532,259)
 	optical.size=Vector2(viewport.size)
 	var logical:=Vector2(1064.0/518.0*207.0,207)
-	Renderer.configure(gem_material,m,m.body,w.yaw,w.tilt,w.light_mode,w.real_mode,logical,2.8*w.zoom,logical/Vector2(viewport.size),w.max_bounces)
+	Renderer.configure(gem_material,m,m.body,w.yaw,w.tilt,w.light_mode,w.real_mode,logical,scale,logical/Vector2(viewport.size),w.max_bounces)
+	gem_material.set_shader_parameter("center",Vector2(logical.x*0.5,logical.y*0.44))
 	if w.real_mode:
 		var inclusions:=PackedVector4Array()
 		for point in [Vector3(-6,-4,8),Vector3(9,8,-6),Vector3(-11,12,4)]:

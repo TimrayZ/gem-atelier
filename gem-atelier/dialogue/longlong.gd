@@ -1,7 +1,7 @@
 extends RefCounted
 ## An enthusiastic learner, never an all-knowing instructor.
 static func introduction() -> Dictionary:
-	return {"key":"panpan-introduction","greeting":"我叫 格蕾丝·潘多拉·坦格利安。叫我潘潘就好！","title":"潘潘 · 这阵子一起看店吧","body":"全名有点长，对吧？名牌都差点写不下。\n\n我以前只管收石头。这次想摆个小展览，放几颗咱们自己磨的。我帮你找资料，你来挑第一块？\n\n爷爷去旅行啦：先看矿物展，再找老朋友，最后去海边。他说会寄明信片回来。\n\n爷爷给你的留言：\n“你二十四岁了，这季店里由你拿主意。练习料我分好了，别急着挑最贵的。等我回来，把你最满意的那颗留给我看看。”\n\n潘潘是二十六岁的成年龙族。十多年前被爷爷救助并收养，现在自己选择留在工坊，整理收藏，也和你一起学加工。"}
+	return {"key":"panpan-introduction","greeting":"我叫格蕾丝·潘多拉·坦格利安！叫我潘潘就好。","title":"潘潘 · 闪闪发亮的收藏","body":"我的名字很长，我一次就背下来啦！\n\n爷爷说，他以前开矿时，在石头堆旁边遇见了我。我抱着一块亮晶晶的石头不肯撒手，石头被装进篮子，我就跟着篮子走。后来爷爷把我和石头一起带回了家。\n\n我最喜欢翻爷爷的书，好多句子都能背！可是有些词是什么意思……我还没弄明白。\n\n爷爷去旅行了，这阵子由你照看工坊。加工工具要你来用，我帮你翻书、挑石头，还可以给你看我的收藏！"}
 const MATERIALS = [
 	"变石有时是板状或柱状，也可能因为搬运磨成圆粒。爷爷书里画过连生晶体，不过我们现在先观察这块单独的断晶。换不同的灯，它的呈色也会变化。",
 	"紫水晶属于石英，常能见到六方柱和尖尖的晶头。晶体表面的天然平面，不是我们已经切好的刻面。也有带母岩、附着物或被磨圆的原料。",
@@ -23,7 +23,7 @@ static func topic(model, manual: bool = false, stage_hint: int = -1) -> Dictiona
 	match model.stage if stage_hint < 0 else stage_hint:
 		1:
 			key = "transfer" if model.awaiting_transfer else "mount"
-			greeting = "这里画了两根粘杆……爷爷想提醒我们翻面吧？" if model.awaiting_transfer else "这些工具我都擦得亮亮的。现在轮到我们试试啦。"
+			greeting = "这里画了两根粘杆……爷爷想提醒我们翻面吧？" if model.awaiting_transfer else "这些工具我都擦得亮亮的。你来操作，我在旁边看！"
 			title = "爷爷的手记 · 转接翻面" if model.awaiting_transfer else "爷爷的手记 · 粘杆与八角手"
 			body = "先把已经加工好的亭部转接到另一根粘杆，保持轴线对齐，再加工冠部与台面。\n\n翻面只改变装夹，不会恢复已经磨掉的材料。" if model.awaiting_transfer else "宝石固定在粘杆端部，八角手支承在托台上。让当前要磨的面接触磨盘。\n\n参考角度是一条提示。改角度或进给深度，会切出不同的实体；材料磨掉后就补不回来了。\n\n按住加工按钮或空格磨削，每面完成后松开，再磨下一面。开启滴水，留意温度。"
 		2:

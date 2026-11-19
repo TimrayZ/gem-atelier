@@ -2,13 +2,13 @@ extends Control
 
 const Workshop = preload("res://scripts/workshop.gd")
 const PixelWorld = preload("res://scripts/pixel_world.gd")
-const BG := Color("e3d3b0")
-const PANEL := Color("f4e7c9")
-const LINE := Color("b29873")
-const WHITE := Color("4b3629")
-const MUTED := Color("8a745a")
-const MINT := Color("6d805c")
-const GOLD := Color("9c663a")
+const BG := Color("d8d9ca")
+const PANEL := Color("eef0e6")
+const LINE := Color("9aa99d")
+const WHITE := Color("38473f")
+const MUTED := Color("718078")
+const MINT := Color("718c79")
+const GOLD := Color("a07862")
 const STAGE_NAMES = ["挑选原石", "装夹定位", "刻面切割", "细磨抛光", "光影展台"]
 const STAGE_EN = ["THE ROUGH", "THE SETUP", "THE CUT", "THE POLISH", "THE REVEAL"]
 
@@ -47,7 +47,7 @@ var audio_playback: AudioStreamGeneratorPlayback
 var audio_phase: float = 0.0
 
 func _ready() -> void:
-	get_window().title = "石间 · Gem Atelier 0.12.2 · 石间小铺"
+	get_window().title = "石间 · Gem Atelier 0.13.0 · 石间小铺"
 	font = SystemFont.new()
 	font.font_names = PackedStringArray(["Microsoft YaHei UI", "Microsoft YaHei", "Noto Sans CJK SC", "PingFang SC", "sans-serif"])
 	font_bold = SystemFont.new()
@@ -80,26 +80,26 @@ func build_theme() -> void:
 	skin.default_font_size = 14
 	for state in ["normal", "hover", "pressed", "disabled", "focus"]:
 		var style := StyleBoxFlat.new()
-		style.bg_color = Color("ebd9b4")
+		style.bg_color = Color("dfe8d9")
 		style.border_color = LINE
 		style.set_border_width_all(2)
 		style.set_corner_radius_all(2)
 		style.content_margin_left = 8
 		style.content_margin_right = 8
 		if state == "hover":
-			style.bg_color = Color("f6e7c7")
+			style.bg_color = Color("f2f5ed")
 			style.border_color = MINT
 		if state == "pressed":
-			style.bg_color = Color("ddbd89")
+			style.bg_color = Color("b7cbbc")
 		if state == "disabled":
-			style.bg_color = Color("dfd2b7")
+			style.bg_color = Color("d6dfd4")
 		if state == "focus":
 			style.bg_color = Color.TRANSPARENT
 			style.border_color = GOLD
 		skin.set_stylebox(state, "Button", style)
 	skin.set_color("font_color", "Button", WHITE)
 	skin.set_color("font_hover_color", "Button", WHITE)
-	skin.set_color("font_disabled_color", "Button", Color("a09075"))
+	skin.set_color("font_disabled_color", "Button", Color("94a497"))
 	skin.set_color("font_color","CheckBox",WHITE)
 	skin.set_color("font_pressed_color","CheckBox",WHITE)
 	skin.set_color("font_hover_pressed_color","CheckBox",WHITE)
@@ -265,10 +265,10 @@ func build_controls() -> void:
 	accent.set_corner_radius_all(4)
 	primary.add_theme_stylebox_override("normal", accent)
 	var hover := accent.duplicate()
-	hover.bg_color = Color("83936b")
+	hover.bg_color = Color("89a394")
 	primary.add_theme_stylebox_override("hover", hover)
-	primary.add_theme_color_override("font_color", Color("fff3d4"))
-	primary.add_theme_color_override("font_hover_color", Color("fff3d4"))
+	primary.add_theme_color_override("font_color", Color("f5f5e9"))
+	primary.add_theme_color_override("font_hover_color", Color("f5f5e9"))
 	primary.add_theme_font_override("font", font_bold)
 	for i in range(3):
 		var mode := i
@@ -501,14 +501,14 @@ func refresh() -> void:
 		buttons["gem%d"%i].text = ("●  " if i == model.gem_id else "○  ")+gem.name+"\n     %.2f ct / 原石"%gem.rough
 	for i in range(3):
 		buttons["light%d"%i].visible = s == 4
-		buttons["light%d"%i].modulate = Color.WHITE if world.light_mode == i else Color("b5a17c")
+		buttons["light%d"%i].modulate = Color.WHITE if world.light_mode == i else Color("a8b9a9")
 	for i in range(model.SHAPES.size()):
 		buttons["shape%d"%i].visible = s == 0
 		buttons["shape%d"%i].text = ("●  " if model.shape_id == i else "○  ")+model.SHAPES[i]
 	for id in ["coarse","fine","finish","prev","next","water","work","inspect"]:
 		buttons[id].visible = machining
 	for pair in [["coarse",0],["fine",1],["finish",2]]:
-		buttons[pair[0]].modulate = Color.WHITE if model.wheel == pair[1] else Color("b5a17c")
+		buttons[pair[0]].modulate = Color.WHITE if model.wheel == pair[1] else Color("a8b9a9")
 	buttons.finish.text = "03  终抛 · "+("氧化铈盘" if model.gem_id == 1 else "金刚石抛光盘")
 	buttons.finish.visible = false
 	buttons.pressure.visible = machining
@@ -629,8 +629,8 @@ func _draw() -> void:
 	if font == null:
 		return
 	draw_rect(Rect2(0, 0, 1120, 720), BG)
-	draw_rect(Rect2(0,0,1120,6),Color("806044"))
-	draw_rect(Rect2(0,694,1120,26),Color("6f513b"))
+	draw_rect(Rect2(0,0,1120,6),Color("6f8879"))
+	draw_rect(Rect2(0,694,1120,26),Color("526b5d"))
 	for i in range(75):
 		var x: float=posmod(i*163,1110)
 		var y: float=posmod(i*97,680)+9
@@ -655,13 +655,13 @@ func _draw() -> void:
 			text_at("/", x + 191, 134, 14, LINE)
 	box(Rect2(28, 162, 222, 414))
 	box(Rect2(850, 162, 242, 414))
-	draw_rect(Rect2(261,157,578,424),Color("896644"))
-	draw_rect(Rect2(264,160,572,418),Color("e9d4a6"))
+	draw_rect(Rect2(261,157,578,424),Color("839789"))
+	draw_rect(Rect2(264,160,572,418),Color("dde4d9"))
 	draw_left()
 	draw_right()
 	draw_bottom()
-	text_at("石间小铺  /  潘潘和你的宝石工坊 0.12.2", 28, 710, 10, Color("e7d6ae"))
-	text_at("F8 快速加工 · 点击潘潘查看说明", 862, 710, 10, Color("e7d6ae"))
+	text_at("石间小铺  /  潘潘和你的宝石工坊 0.13.0", 28, 710, 10, Color("e6efe4"))
+	text_at("F8 快速加工 · 点击潘潘查看说明", 862, 710, 10, Color("e6efe4"))
 
 func draw_left() -> void:
 	var gem = model.GEMS[model.gem_id]
@@ -671,7 +671,7 @@ func draw_left() -> void:
 		line(44,478,190)
 		text_at(model.Stock.NAMES[model.gem_id] if model.rough_kind==0 else "冲积磨圆料（示例）",44,548,12,GOLD)
 		return
-	draw_circle(Vector2(136,255),30,Color("d4bf96"))
+	draw_circle(Vector2(136,255),30,Color("cedacb"))
 	draw_circle(Vector2(136,255),20,world.displayed_color.darkened(0.3))
 	text_at(gem.name,44,310,19,WHITE,true)
 	text_at(gem.en,44,332,10,MINT)
@@ -727,7 +727,7 @@ func draw_right() -> void:
 		text_at("光源改变呈色 · 转动寻找闪光",866,557,10,MUTED)
 
 func draw_bottom() -> void:
-	box(Rect2(28,592,1064,98),Color("f0dfba"))
+	box(Rect2(28,592,1064,98),Color("e3eadb"))
 	var s: int = model.stage
 	text_at(STAGE_EN[s],46,617,9,MINT)
 	var titles := ["选择原料","翻个面，再试一次" if model.awaiting_transfer else "把它稳稳放好","慢慢磨，别着急","这一面，快要亮起来了","成品展示"]
@@ -739,7 +739,7 @@ func draw_bottom() -> void:
 		for i in range(ids.size()):
 			var bar_width: float = minf(25.0,400.0/ids.size())
 			var x: float = 398+i*bar_width
-			draw_rect(Rect2(x,634,bar_width-3,10),Color("d3bd97"))
+			draw_rect(Rect2(x,634,bar_width-3,10),Color("b9cbb9"))
 			draw_rect(Rect2(x,634,(bar_width-3)*values[ids[i]],10),MINT)
 			if ids[i] == model.facet: draw_rect(Rect2(x,651,bar_width-3,2),GOLD)
 	else:

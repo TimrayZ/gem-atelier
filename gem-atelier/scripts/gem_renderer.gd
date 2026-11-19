@@ -33,4 +33,4 @@ static func configure(material: ShaderMaterial, model, body: Array, yaw: float, 
 	material.set_shader_parameter("illuminant",light)
 	material.set_shader_parameter("pixel_footprint",footprint)
 	material.set_shader_parameter("max_bounces",bounces)
-	material.set_shader_parameter("art_pixel",maxf(logical.y/150.0,footprint.y) if logical.x>300 else 1.5)
+	material.set_shader_parameter("art_pixel",maxf(1.5,maxf(logical.y/150.0,footprint.y)))

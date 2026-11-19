@@ -8,18 +8,18 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter=Control.MOUSE_FILTER_STOP
 	var bg:=ColorRect.new()
-	bg.color=Color("dfccaa")
+	bg.color=Color("d7dbce")
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
 	var title:=Label.new()
 	title.text="我的收藏室"
 	title.position=Vector2(62,40)
 	title.add_theme_font_size_override("font_size",30)
-	title.add_theme_color_override("font_color",Color("4b3629"))
+	title.add_theme_color_override("font_color",Color("38473f"))
 	add_child(title)
 	subtitle=Label.new()
 	subtitle.position=Vector2(65,90)
-	subtitle.add_theme_color_override("font_color",Color("80684e"))
+	subtitle.add_theme_color_override("font_color",Color("718078"))
 	add_child(subtitle)
 	var back:=Button.new()
 	back.text="回到工坊  →"
@@ -57,7 +57,7 @@ func _ready() -> void:
 	var hint:=Label.new()
 	hint.text="点击宝石，重新拿到灯下看看。  /  Click a gem to inspect it again."
 	hint.position=Vector2(66,676)
-	hint.add_theme_color_override("font_color",Color("80684e"))
+	hint.add_theme_color_override("font_color",Color("718078"))
 	add_child(hint)
 	hide()
 

@@ -3,16 +3,16 @@
 挑一块原石，慢慢切出自己的宝石。做完换盏灯，转一转，再把它放进绒布收藏室。
 Choose a rough stone, cut and polish it, turn it under different lights, then keep it in your velvet-lined collection.
 
-**v0.12.2 Windows 体验版：10 种原料 × 10 种切工。**
-**v0.12.2 Windows preview: 10 materials × 10 cuts.**
+**v0.13.0 Windows 体验版：10 种原料 × 10 种切工。**
+**v0.13.0 Windows preview: 10 materials × 10 cuts.**
 
 [下载游戏 / Download](https://github.com/TimrayZ/gem-atelier/releases/latest) · [宣传素材 / Media kit](https://github.com/TimrayZ/gem-atelier/releases/download/v0.11.0/GemAtelier-v0.11.0-MediaKit.zip)
 
-![莫桑石像素展台 / Pixel moissanite exhibition](docs/images/showcase.png)
+![像素钻石展台 / Pixel diamond exhibition](docs/images/showcase-v013.png)
 
 ## 开始游玩 / Play
 
-1. 下载 **GemAtelier-v0.12.2-Windows-x64.zip**，完整解压，双击 **GemAtelier.exe**。无需安装 Godot，无需联网。
+1. 下载 **GemAtelier-v0.13.0-Windows-x64.zip**，完整解压，双击 **GemAtelier.exe**。无需安装 Godot，无需联网。
 2. 左侧选择原料，右侧选择切工；按右下角按钮逐步加工，或按 **F8** 自动完成后续工序。
 3. 成品拖动旋转、滚轮缩放，按 **1 / 2 / 3** 比较日光、白炽灯与中性光。
 4. 喜欢就收入收藏室。点击收藏中的宝石，可随时重新旋转、换光查看。
@@ -22,19 +22,21 @@ Download the Windows ZIP, extract everything, and run **GemAtelier.exe**. Choose
 Windows 10/11 x64，显卡需支持 OpenGL 3.3。卡顿可把“反射上限”调到 6；像素与真实通道都提供 6/12/20 档。尚未在多种电脑配置上验证。
 Requires 64-bit Windows 10/11 and OpenGL 3.3. Both render channels expose 6/12/20 reflection limits; try 6 for performance. Compatibility across other hardware remains unverified.
 
+![潘潘与工坊 / Panpan and the workshop](docs/images/workshop-v013.png)
+
 ## 工坊 / Workshop
 
 - **10 种原料**：亚历山大变石、紫水晶、蓝宝石、钻石、透明正长石、合成莫桑石、祖母绿、粉色尖晶石、金色托帕石、红宝石。
 - **10 种切工**：八角单翻、椭圆、八重对称、长方阶梯、圆形明亮（心箭试验）、枕形、梨形、马眼、切角三角、六边阶梯。圆形明亮尚未验证达到八心八箭。
 - 原生晶形与磨圆料可选；切削逐面移除实际体积，切歪、崩角也会保留在作品中。每面一次抛光，支持滴水冷却与压力选择。
-- 默认像素材质按前后刻面归并光影，采用多方向灯光和较大色块；随转动显示反光与火彩。钻石随照明呈色，莫桑石使用更高色散，变石在日光和白炽灯下改变颜色。
+- 默认像素材质按前后刻面归并光影，采用柔光和较大色块；随转动显示反光与火彩。钻石随照明呈色，莫桑石使用更高色散，变石在日光和白炽灯下改变颜色。
 - 大展台与独立绒布收藏室；按 **R** 切换像素／真实通道，两者均为纯色背景。
 - 左侧百科收录组成、典型晶形、硬度、韧性、解理、折射率与拟合吸收谱。
 - 支持导入 **GemCAD .asc / Gem Cut Studio .gcs** 常见平面刻面子集。压缩包“示例切工”包含两份等价的原创 CC0 练习设计。
 
 Ten materials include alexandrite, amethyst, sapphire, diamond, orthoclase, synthetic moissanite, emerald, pink spinel, golden topaz and ruby. Ten cuts include octagonal, oval, eightfold, rectangular step, experimental round brilliant, cushion, pear, marquise, clipped triangle and hexagonal step. Actual progressive solid cutting preserves mistakes and chips. Features include one polishing pass, cooling and pressure controls, a mineral encyclopedia, a large pixel/spectral viewer, saved-shape collections, and ASC/GCS import with original CC0 examples. The experimental brilliant is not verified as hearts and arrows.
 
-![收藏室 / Collection room](docs/images/collection.png)
+![收藏室 / Collection room](docs/images/collection-v013.png)
 
 | 操作 / Control | 功能 / Action |
 | --- | --- |
@@ -50,8 +52,9 @@ Ten materials include alexandrite, amethyst, sapphire, diamond, orthoclase, synt
 
 ## 潘潘与小铺 / Panpan and the shop
 
-中文全名 **格蕾丝·潘多拉·坦格利安**，英文 **Grace Pandora Targaryen**，昵称 **潘潘 / Panpan**。她是爷爷当年救助的小龙，如今 26 岁，爱收集亮晶晶的东西，也想和你一起学加工。主角 24 岁，回乡替健康、外出旅行的爷爷照看一季小铺。
-Her full name is **Grace Pandora Targaryen**, Chinese **格蕾丝·潘多拉·坦格利安**, nickname **Panpan**. The dragon your grandfather once rescued is now 26, loves collecting shiny things, and wants to learn gem cutting with you. The 24-year-old protagonist returns home to look after the shop while their healthy grandfather travels.
+中文全名 **格蕾丝·潘多拉·坦格利安**，英文 **Grace Pandora Targaryen**，昵称 **潘潘 / Panpan**。她是一只相当于人类不到十岁的小龙。爷爷开矿时遇见了她，她喜欢石头里的亮光，一路跟着装宝石的篮子回了工坊。她能背很多书，却还在理解书里的意思。主角负责操作工具，她帮忙翻书和整理收藏。爷爷去旅行了，主角暂时照看小铺。
+Her name is **Grace Pandora Targaryen**, nicknamed **Panpan**. She is a young dragon comparable to a human child under ten. Grandfather met her while mining, and she followed his basket of sparkling stones back to the workshop. She can recite many passages but is still learning what they mean. The player operates the tools while she helps find books and organize the collection. Grandfather is away travelling.
+
 
 潘潘默认安静，点击她才会用俏皮拟声打招呼；再点击查看详细介绍。介绍不阻塞加工，调试选项可跳过。[角色与故事设定](docs/角色与故事方案.md)。
 Panpan stays quiet until clicked, then greets you with playful synthesized chatter. Click again for details. Introductions do not gate processing and can be skipped in debug mode. See the linked character and story notes.
