@@ -47,7 +47,7 @@ var audio_playback: AudioStreamGeneratorPlayback
 var audio_phase: float = 0.0
 
 func _ready() -> void:
-	get_window().title = "石间 · Gem Atelier 0.12 · 石间小铺"
+	get_window().title = "石间 · Gem Atelier 0.12.1 · 石间小铺"
 	font = SystemFont.new()
 	font.font_names = PackedStringArray(["Microsoft YaHei UI", "Microsoft YaHei", "Noto Sans CJK SC", "PingFang SC", "sans-serif"])
 	font_bold = SystemFont.new()
@@ -660,7 +660,7 @@ func _draw() -> void:
 	draw_left()
 	draw_right()
 	draw_bottom()
-	text_at("石间小铺  /  潘潘和你的宝石工坊 0.12", 28, 710, 10, Color("e7d6ae"))
+	text_at("石间小铺  /  潘潘和你的宝石工坊 0.12.1", 28, 710, 10, Color("e7d6ae"))
 	text_at("F8 快速加工 · 点击潘潘查看说明", 862, 710, 10, Color("e7d6ae"))
 
 func draw_left() -> void:

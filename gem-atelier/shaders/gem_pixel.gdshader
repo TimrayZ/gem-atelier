@@ -181,14 +181,19 @@ void fragment(){
  vec2 pixel=(floor(UV*logical_size/art_pixel)+vec2(0.5))*art_pixel;
  vec3 p;vec3 n;vec3 d;
  bool hit=pixel_hit(pixel,p,n,d);
- bool silhouette=false;bool edge=false;
+ bool silhouette=false;
+ float facet_crease=0.0;
  vec2 directions[4];directions[0]=vec2(1,0);directions[1]=vec2(-1,0);directions[2]=vec2(0,1);directions[3]=vec2(0,-1);
  for(int i=0;i<4;i++){
   vec3 p2;vec3 n2;vec3 d2;bool other=pixel_hit(pixel+directions[i]*art_pixel,p2,n2,d2);
   if(other!=hit)silhouette=true;
-  if(hit && other && dot(n,n2)<0.997)edge=true;
+  // Draw each shared ridge on one side so it stays one pixel wide.
+  if(hit && other && i%2==0){
+   float bend=1.0-clamp(dot(n,n2),-1.0,1.0);
+   facet_crease=max(facet_crease,smoothstep(0.002,0.055,bend));
+  }
  }
- if(!hit)COLOR=vec4(vec3(0.08),silhouette?1.0:0.0);
+ if(!hit)COLOR=vec4(vec3(0.035,0.046,0.055),silhouette?1.0:0.0);
  else{
   // Group pixels by both their front facet and the first internal facet reached.
   vec3 internal_ray=refract(d,n,1.0/refractive_index);
@@ -212,8 +217,10 @@ void fragment(){
   }
   vec3 sample_ray=normalize(sample_point-vec3(0.0,0.0,220.0));
   vec3 colour=spectral_material(sample_point,sample_ray,n);
-  if(edge)colour=mix(colour,vec3(max(colour.r,max(colour.g,colour.b))),0.12);
-  if(silhouette)colour*=0.32;
+  float brightness=max(colour.r,max(colour.g,colour.b));
+  vec3 crease=brightness>0.33 ? colour*0.58 : mix(colour,vec3(0.48,0.54,0.58),0.35);
+  colour=mix(colour,crease,facet_crease);
+  if(silhouette)colour=mix(vec3(0.045,0.058,0.069),colour,0.28);
   COLOR=vec4(colour,1.0);
  }
 }
