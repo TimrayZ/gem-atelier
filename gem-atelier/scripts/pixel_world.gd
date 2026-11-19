@@ -10,6 +10,9 @@ var optics: ColorRect
 var optics_material: ShaderMaterial
 var optics_display: TextureRect
 var max_bounces := 12
+var real_mode := false
+var large_view_active := false
+const Renderer=preload("res://scripts/gem_renderer.gd")
 var pose := Quaternion.IDENTITY
 var machine_center := Vector2(130, 110)
 var optical_enabled := true
@@ -185,37 +188,9 @@ func draw_rough(center: Vector2, scale_factor: float) -> void:
 	draw_solid(model.body, center, scale_factor * 0.92, false, false)
 
 func draw_gallery() -> void:
-	var ambient := Color("242a2b")
-	var lamp_color: Color = [Color("edf3ff"),Color("ffe0b5"),Color("f4efdf")][light_mode]
-	block(0, 0, 284, 207, ambient.darkened(0.42))
-	for i in range(7):
-		block(20 + i * 16, 0, 244 - i * 32, 170, Color(ambient, 0.09))
-	for fold in range(18):
-		var brightness: float = 0.012 + 0.008*sin(fold*1.7)
-		block(fold*17,0,7,178,Color(0.7,0.72,0.72,brightness))
-	# A stage with a soft, stepped light cone.
-	poly([Vector2(111, 0), Vector2(174, 0), Vector2(246, 178), Vector2(38, 178)], Color(lamp_color, 0.025))
-	poly([Vector2(126, 0), Vector2(159, 0), Vector2(209, 173), Vector2(75, 173)], Color(lamp_color, 0.035))
-	for i in range(24):
-		var x := posmod(i * 73 + 13, 277)
-		var y := posmod(i * 47 + 9, 160)
-		block(x, y, 1, 1, Color(lamp_color, 0.15 + sin(t + i) * 0.1))
-	block(0, 178, 284, 29, ambient.lightened(0.015))
-	block(0, 178, 284, 1, Color("334647"))
-	# Obsidian display plinth and its metal trim.
-	ellipse(Vector2(142, 184), Vector2(73, 13), Color(0, 0, 0, 0.24))
-	poly([Vector2(92, 164), Vector2(192, 164), Vector2(187, 187), Vector2(97, 187)], Color("172326"))
-	block(97, 184, 90, 2, Color("9b8a62"))
-	ellipse(Vector2(142, 164), Vector2(50, 12), Color("a08e65"))
-	ellipse(Vector2(142, 162), Vector2(50, 11), Color("344647"))
-	ellipse(Vector2(142, 161), Vector2(44, 8), Color("253638"))
-	ellipse(Vector2(142, 158), Vector2(21, 4), Color(lamp_color, 0.10))
-	draw_gem(Vector2(142, 99 + sin(t * 1.1) * 2.0), 1.5 * zoom, true)
-	# Sparse hand-placed sparkle accents.
-	if sin(t * 1.8) > 0.5:
-		star(Vector2(203, 69), Color(lamp_color, 0.6), 3)
-	if cos(t * 1.3) > 0.65:
-		star(Vector2(84, 119), Color("b1c6bb"), 2)
+	# One neutral colour for both channels; no scenery enters the optical rays.
+	block(0,0,284,207,Color("23383d"))
+	draw_gem(Vector2(142,103),1.5*zoom,true)
 
 func rotate_vertex(v: Vector3) -> Vector3:
 	return v.rotated(Vector3.UP, yaw).rotated(Vector3.RIGHT, tilt)
@@ -240,7 +215,7 @@ func _ready() -> void:
 	optics.size = Vector2(284, 207)
 	optics.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	optics_material = ShaderMaterial.new()
-	optics_material.shader = preload("res://shaders/gem_optics.gdshader")
+	optics_material.shader = Renderer.PIXEL
 	optics.material = optics_material
 	add_child(optics)
 
@@ -267,21 +242,10 @@ func update_solid_visuals(_delta: float) -> void:
 		if chunk.life <= 0.0:
 			chunk.node.queue_free()
 			chunks.erase(chunk)
-	optics.visible = model.stage == 4 and optical_enabled
+	optics.visible = model.stage == 4 and optical_enabled and not large_view_active
 	if is_instance_valid(optics_display): optics_display.visible = optics.visible
 	if optics.visible:
-		var planes := PackedVector4Array()
-		for f in model.body:
-			var n: Vector3 = rotate_vertex(f.n)
-			planes.append(Vector4(n.x, n.y, n.z, f.d))
-		optics_material.set_shader_parameter("plane_count", mini(256, planes.size()))
-		planes.resize(256)
-		optics_material.set_shader_parameter("planes", planes)
-		optics_material.set_shader_parameter("center", Vector2(142, 99 + sin(t*1.1)*2.0))
-		optics_material.set_shader_parameter("gem_scale", 1.5 * zoom)
-		optics_material.set_shader_parameter("material_id", model.gem_id)
-		optics_material.set_shader_parameter("absorption_bands", model.Data.bands(model.gem_id))
-		optics_material.set_shader_parameter("max_bounces", max_bounces)
+		Renderer.configure(optics_material,model,model.body,yaw,tilt,light_mode,real_mode,Vector2(284,207),1.5*zoom,Vector2(0.5,0.5),max_bounces)
 		var inclusions := PackedVector4Array()
 		for p in [Vector3(-6,-4,8),Vector3(9,8,-6),Vector3(-11,12,4)]:
 			var v: Vector3 = rotate_vertex(p)

@@ -3,6 +3,7 @@ render_mode unshaded;
 // Same convex boundary planes as the cut solid, transformed into camera space.
 uniform vec4 planes[256];
 uniform int plane_count = 0;
+uniform vec2 logical_size = vec2(284.0,207.0);
 uniform vec2 center = vec2(142.0, 99.0);
 uniform float gem_scale = 1.5;
 uniform float refractive_index = 1.746;
@@ -11,7 +12,7 @@ uniform float surface_roughness = 0.01;
 uniform float scattering_strength = 0.0001;
 uniform int illuminant = 0;
 
-// Sixteen visible-wavelength bands: fixed material absorption under changing SPD.
+// Twenty visible-wavelength bands: fixed material absorption under changing SPD.
 uniform int material_id = 0;
 uniform float absorption_bands[20];
 uniform int max_bounces = 12;
@@ -31,37 +32,11 @@ float source_spd(float l) {
 	float nm = l*0.001;
 	return pow(0.56/nm,5.0)*(exp(14387.77/(0.56*temp))-1.0)/(exp(14387.77/(nm*temp))-1.0);
 }
+// Plain studio: no curtain, floor, folds, rings, texture or scenery in the rays.
 float environment(vec3 point, vec3 d) {
-	float base = mix(0.055,0.22,clamp(-d.y,0.0,1.0));
-	float box1 = smoothstep(0.82,0.93,dot(d,normalize(vec3(-0.6,-0.7,0.6))));
-	float box2 = smoothstep(0.88,0.97,dot(d,normalize(vec3(0.8,-0.25,-0.3))));
-	float pin = pow(max(0.0,dot(d,normalize(vec3(-0.25,-0.4,0.88)))),600.0/(1.0+surface_roughness*80.0));
-	float strip = pow(max(0.0,dot(d,normalize(vec3(0.4,0.65,0.5)))),240.0/(1.0+surface_roughness*60.0));
-	float pin2=pow(max(0.0,dot(d,normalize(vec3(-0.8,0.3,-0.45)))),480.0);
-	base += box1*0.8+box2*0.6+pin*10.0+strip*5.0+pin2*8.0;
-	// Finite ceiling softboxes vary across a facet with the ray exit position.
-	if(d.y < -0.001) {
-		float t=(-95.0-point.y)/d.y;
-		vec3 hit=point+d*t;
-		float panel=1.0-smoothstep(0.80,1.0,max(abs((hit.x+38.0)/45.0),abs((hit.z-25.0)/64.0)));
-		base+=max(0.0,panel)*2.5;
-	}
-	if(d.y > 0.001) {
-		float t=(75.0-point.y)/d.y;
-		vec3 hit=point+d*t;
-		float ring=exp(-pow((length(hit.xz)-38.0)/3.0,2.0));
-		float floor_shade=0.04+0.12*ring+0.06*exp(-dot(hit.xz,hit.xz)/4000.0);
-		base=mix(base,floor_shade,0.72);
-	}
-	// A finite neutral studio backdrop: transmitted rays bend its vertical folds.
-	if(d.z < -0.01) {
-		float t = (-110.0-point.z)/d.z;
-		vec3 p = point+d*t;
-		float fold = 0.5+0.5*cos(p.x*0.055);
-		base += 0.10+0.95*pow(fold,6.0);
-	}
-	if(d.y > 0.8) base *= 0.30;
-	return base;
+ float box1=smoothstep(0.80,0.94,dot(d,normalize(vec3(-0.6,-0.7,0.6))));
+ float box2=smoothstep(0.86,0.97,dot(d,normalize(vec3(0.8,-0.25,-0.3))));
+ return 0.24+box1*3.5+box2*1.8;
 }
 
 bool entry_hit(vec3 o, vec3 d, out float distance, out vec3 normal) {
@@ -185,7 +160,7 @@ vec4 sample_pixel(vec2 pixel) {
 }
 
 void fragment() {
-	vec2 pixel=UV*vec2(284.0,207.0);
+	vec2 pixel=UV*logical_size;
 	// Rotated stratification within the native-resolution pixel, no image blur.
 	vec4 integrated=sample_pixel(pixel+vec2(-0.375,-0.125)*pixel_footprint)*0.25;
 	integrated+=sample_pixel(pixel+vec2(0.125,-0.375)*pixel_footprint)*0.25;

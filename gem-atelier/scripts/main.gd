@@ -23,6 +23,7 @@ var model = Workshop.new()
 var world
 var encyclopedia
 var collection_room
+var exhibition
 var active_workshop
 var font: SystemFont
 var font_bold: SystemFont
@@ -32,8 +33,6 @@ var angle_slider: HSlider
 var hold_button: Button
 var primary: Button
 var scene_texture: TextureRect
-var collection_dialog: AcceptDialog
-var collection_text: RichTextLabel
 var toast: String = "每一颗原石，都藏着一种可能。"
 var toast_time: float = 5.0
 var holding := false
@@ -47,7 +46,7 @@ var audio_playback: AudioStreamGeneratorPlayback
 var audio_phase: float = 0.0
 
 func _ready() -> void:
-	get_window().title = "石间 · Gem Atelier 0.9 · 宝石工坊"
+	get_window().title = "石间 · Gem Atelier 0.10-dev · 宝石工坊"
 	font = SystemFont.new()
 	font.font_names = PackedStringArray(["Microsoft YaHei UI", "Microsoft YaHei", "Noto Sans CJK SC", "PingFang SC", "sans-serif"])
 	font_bold = SystemFont.new()
@@ -69,6 +68,9 @@ func _ready() -> void:
 	collection_room=preload("res://scripts/collection_room.gd").new()
 	collection_room.host=self
 	add_child(collection_room)
+	exhibition=preload("res://scripts/exhibition.gd").new()
+	exhibition.host=self
+	add_child(exhibition)
 	refresh()
 
 func build_theme() -> void:
@@ -187,6 +189,8 @@ func build_controls() -> void:
 	button("inclusions", "内含物对照 · 关", Rect2(866,73,210,24), func(): world.inclusion_enabled = not world.inclusion_enabled; refresh())
 	button("rough", "原料形态", Rect2(866,481,210,30), func(): model.rough_kind = 1-model.rough_kind; model.reset(model.gem_id); refresh())
 	button("inspect", "抬起观察 / 拖动旋转", Rect2(44, 523, 190, 32), func(): stop_work(); world.inspection = not world.inspection; refresh())
+	button("enlarge", "放大展台  ↗", Rect2(626,533,190,28), func(): exhibition.open())
+	button("style", "风格 · 像素", Rect2(866,354,210,28), func(): world.real_mode=not world.real_mode; refresh())
 	button("optics", "光学追踪  /  刻面对照", Rect2(866, 485, 210, 28), func(): world.optical_enabled = not world.optical_enabled; refresh())
 	depth_slider = HSlider.new()
 	depth_slider.position = Vector2(872, 381)
@@ -229,19 +233,6 @@ func build_controls() -> void:
 	button("spin", "自动旋转   关闭", Rect2(866, 402, 210, 34), func(): world.auto_rotate = not world.auto_rotate; refresh())
 	button("reset_view", "重置观赏角度", Rect2(866, 444, 210, 34), func(): world.yaw = 0.35; world.tilt = -0.52; world.zoom = 1.0; refresh())
 	button("new", "再加工一颗  →", Rect2(44, 513, 190, 38), func(): model.reset(model.gem_id); world.auto_rotate = false; world.inspection = false; world.zoom = 1.0; refresh())
-	collection_dialog = AcceptDialog.new()
-	collection_dialog.title = "石间 · 我的收藏柜"
-	collection_dialog.ok_button_text = "回到工坊"
-	collection_dialog.min_size = Vector2i(580, 350)
-	collection_dialog.exclusive = true
-	collection_text = RichTextLabel.new()
-	collection_text.custom_minimum_size = Vector2(536, 270)
-	collection_text.bbcode_enabled = true
-	collection_text.add_theme_font_override("normal_font", font)
-	collection_text.add_theme_font_size_override("normal_font_size", 16)
-	collection_text.add_theme_color_override("default_color", WHITE)
-	collection_dialog.add_child(collection_text)
-	add_child(collection_dialog)
 
 func build_audio() -> void:
 	sound = preload("res://scripts/workshop_audio.gd").new()
@@ -324,6 +315,9 @@ func _notification(what: int) -> void:
 		dragging = false
 
 func _input(event: InputEvent) -> void:
+	if is_instance_valid(exhibition) and exhibition.visible:
+		exhibition.handle_event(event)
+		return
 	if is_instance_valid(collection_room) and collection_room.visible:
 		if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
 			collection_room.hide()
@@ -347,7 +341,7 @@ func _input(event: InputEvent) -> void:
 		if holding:
 			stop_work()
 		dragging = false
-	if event is InputEventKey and not event.echo and not collection_dialog.visible:
+	if event is InputEventKey and not event.echo and not collection_room.visible:
 		if event.pressed and event.keycode == KEY_F8:
 			toggle_fast()
 			get_viewport().set_input_as_handled()
@@ -394,7 +388,7 @@ func on_scene_input(event: InputEvent) -> void:
 		world.tilt = clampf(world.tilt + event.relative.y * 0.009, -1.3, 1.1)
 
 func start_work() -> void:
-	if model.stage not in [2, 3] or model.failed or fast_mode or collection_dialog.visible or (is_instance_valid(guide) and guide.busy):
+	if model.stage not in [2, 3] or model.failed or fast_mode or collection_room.visible or (is_instance_valid(guide) and guide.busy):
 		return
 	world.inspection = false
 	holding = true
@@ -437,6 +431,7 @@ func on_primary() -> void:
 		elif model.stage == 2: notify("角度和进给都会改变真实形状；已磨掉的材料不会恢复。")
 		elif model.stage == 3: notify("每个刻面只需抛光一次，完成后直接进入下一工序。")
 		elif model.stage == 4:
+			exhibition.open()
 			sound.play_complete()
 			world.auto_rotate = true
 			world.inspection = false
@@ -475,7 +470,10 @@ func refresh() -> void:
 	buttons.axis.disabled = holding
 	buttons.pressure.text = "力度 · " + ("重" if model.pressure>1.1 else "轻")
 	buttons.axis.text = "晶向 · " + ["A","B","C"][model.crystal_orientation]
-	buttons.bounces.visible = s == 4
+	buttons.bounces.visible = false
+	buttons.style.visible = s == 4
+	buttons.style.text = "风格 · "+("真实" if world.real_mode else "像素")
+	buttons.enlarge.visible = s == 4
 	buttons.bounces.text = "光路 · %d 次" % world.max_bounces
 	buttons.fast.text = "F8  停止快速加工" if fast_mode else "F8  快速加工 · 约 30 倍"
 	buttons.fast.disabled = model.failed or s == 4
@@ -527,6 +525,7 @@ func refresh() -> void:
 	queue_redraw()
 
 func show_collection() -> void:
+	exhibition.close()
 	stop_work()
 	fast_mode=false
 	dragging=false
@@ -555,6 +554,7 @@ func inspect_collected(index: int) -> void:
 	world.zoom=1.0
 	world.auto_rotate=false
 	collection_room.hide()
+	exhibition.open()
 	refresh()
 
 func text_at(caption: String, x: float, y: float, size_px: int = 14, color: Color = WHITE, bold: bool = false) -> void:
@@ -611,7 +611,7 @@ func _draw() -> void:
 	draw_left()
 	draw_right()
 	draw_bottom()
-	text_at("石间  /  珑珑和爷爷的宝石工坊 0.9", 28, 710, 10, Color("e7d6ae"))
+	text_at("石间  /  珑珑和爷爷的宝石工坊 0.10-dev", 28, 710, 10, Color("e7d6ae"))
 	text_at("F8 快速加工 · 点击珑珑查看说明", 862, 710, 10, Color("e7d6ae"))
 
 func draw_left() -> void:

@@ -19,6 +19,8 @@ func run() -> void:
 	for i in range(400):
 		app.run_fast_steps()
 		if not app.fast_mode: break
+	app.exhibition.close()
+	app.world.real_mode=true
 	app.world.set_process(false)
 	app.world.auto_rotate=false
 	app.world.t=0

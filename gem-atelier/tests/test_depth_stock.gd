@@ -15,6 +15,8 @@ func run() -> void:
 	app=load("res://main.tscn").instantiate()
 	root.add_child(app)
 	app.set_debug(true)
+	app.exhibition.close()
+	app.world.real_mode=true
 	app.world.set_process(false)
 	app.world.auto_rotate=false
 	app.world.t=0
@@ -39,6 +41,8 @@ func run() -> void:
 		app.run_fast_steps()
 		if not app.fast_mode: break
 	assert(app.model.stage==4)
+	app.exhibition.close()
+	app.world.real_mode=true
 	app.world.auto_rotate=false
 	app.world.yaw=0.35
 	app.world.tilt=-0.65

@@ -3,11 +3,14 @@
 一间安静的小宝石工坊。挑一块原石，切出自己的形状，抛光后把它放到灯下转一转。
 A quiet gemstone workshop: choose a rough stone, cut and polish it, then turn it under the light.
 
+**当前 main：0.10-dev 源码预览**，已接入默认像素材质、大展台和新版收藏显示。下方截图来自当前源码；已发布的 Windows v0.9.0 保持原样，本轮未创建 Release。
+**Current main: 0.10-dev source preview**, with default pixel materials, the large exhibition and updated collection visuals. Screenshots show this source build; the published Windows v0.9.0 remains unchanged. No new release was created.
+
 **[下载 Windows 游戏 / Download Windows game](https://github.com/TimrayZ/gem-atelier/releases/latest)**
 
-![当前源码版本：日光下的椭圆钻石 / Current source build: oval diamond in daylight](docs/images/showcase.png)
+![当前源码版本：像素材质大展台 / Current source build: pixel-material exhibition](docs/images/showcase.png)
 
-## 下载后怎么玩 / Play
+## 下载已发布版本 / Play the published build
 
 1. 在 Releases 下载 **GemAtelier-v0.9.0-Windows-x64.zip**，完整解压到一个文件夹。不要选择 GitHub 自动生成的 Source code。
 2. 双击 **GemAtelier.exe**。无需安装 Godot，无需联网。
@@ -17,8 +20,8 @@ A quiet gemstone workshop: choose a rough stone, cut and polish it, then turn it
 
 Download the Windows ZIP from Releases, extract the entire archive, and run **GemAtelier.exe**. No Godot installation or network connection is needed. Choose a material and cut, then press **F8** for automatic processing. Drag the gem to rotate, scroll to zoom, and press **1 / 2 / 3** for lighting. Save favorites to the velvet-lined collection room and click them to inspect them again.
 
-目标平台：Windows 10/11 64 位、支持 OpenGL 3.3 的显卡。光学展台较吃 GPU，卡顿时可点击“光路”切到 6 次或切换刻面对照。目前尚未在其他电脑的各种显卡上验证。
-Targets 64-bit Windows 10/11 with OpenGL 3.3. The optical viewer is GPU intensive: choose six bounces or the flat facet view if needed. Hardware compatibility beyond the development machine remains unverified.
+目标平台：Windows 10/11 64 位、支持 OpenGL 3.3 的显卡。光学展台较吃 GPU，当前源码的真实通道可切“画质 · 流畅”；v0.9.0 则可减少光路次数或切换刻面对照。目前尚未在其他电脑的各种显卡上验证。
+Targets 64-bit Windows 10/11 with OpenGL 3.3. The optical viewer is GPU intensive: choose the real channel’s performance quality in the source preview, or fewer bounces / flat facets in v0.9.0. Hardware compatibility beyond the development machine remains unverified.
 
 ## 工坊里有什么 / Features
 
@@ -26,12 +29,14 @@ Targets 64-bit Windows 10/11 with OpenGL 3.3. The optical viewer is GPU intensiv
 - 五种琢型：八角、椭圆、八重对称、长方阶梯、圆形明亮（心箭试验）。
 - 逐面移除真实体积：切歪会留下不同形状，崩角会留下缺角，可以继续完成有瑕疵的作品。
 - 每面一次抛光；F8 自动完成后续工序；滴水冷却、轻／重压和简化晶向选择。
-- 光谱折射、表面反射、内部全反射、色散、路径吸收及可选内含物；三种照明对照。
+- 默认像素材质：大块刻面、背面明暗、硬边高光与随旋转变化的火彩；变石随光源呈绿／红紫色。
+- 完工与收藏重看直接进入大展台；按 **R** 或点“风格”切换真实通道，渲染区域为纯色背景。
+- 真实通道保留光谱折射、反射、全反射、色散、路径吸收与可选内含物。
 - 左侧“百科”：组成、原料与成品形状、硬度、韧性、解理、折射率、拟合吸收谱。
 - 独立绒布收藏室：使用已保存真实几何渲染缩略图，可重新查看作品；浏览不会覆盖正在加工的石头。
 - 小龙珑珑平时安静，点击角色或手记才会介绍；她也正和你一起学习。
 
-Five materials and five cuts; progressive solid cutting with permanent mistakes and chips; one polishing pass per face; fast processing; cooling, pressure and simplified crystal orientation; spectral optics; a mineral encyclopedia; a velvet collection room with actual saved-shape thumbnails and reopening; and an optional quiet dragon guide.
+Five materials and five cuts; progressive solid cutting with permanent mistakes and chips; one polishing pass; fast processing; a mineral encyclopedia; default pixel materials with changing fire and alexandrite illumination response; a larger exhibition with an optional spectral channel and plain background; matching saved-shape thumbnails; and an optional quiet dragon guide.
 
 ![收藏室 / Collection room](docs/images/collection.png)
 
@@ -44,7 +49,8 @@ Five materials and five cuts; progressive solid cutting with permanent mistakes 
 | 滚轮 / Wheel | 缩放 / Zoom |
 | 1 / 2 / 3 | 切换照明 / Change illuminant |
 | H / J | 冠部／亭部正视 / Crown or pavilion view |
-| Esc | 关闭百科、手记或收藏室 / Close encyclopedia, notes or collection |
+| R（大展台 / large viewer） | 像素／真实材质 / Pixel or spectral material |
+| Esc | 返回或关闭当前页面 / Back or close the current page |
 
 ## 存档 / Saves
 
@@ -53,8 +59,11 @@ Only collected finished pieces are saved. Saves and preferences live in the Godo
 
 ## 模拟范围 / Simulation limits
 
-这是自写的凸多面体光线追踪原型：实际切后边界、Snell 折射、Fresnel 能量分配、全反射、20 波段色散与 Beer–Lambert 吸收。吸收谱为拟合，照明为黑体近似；未完整模拟偏振、双折射、多色性、完整间接照明和焦散。反射次数有限，仍可能有细小混叠或转动闪烁。减少反射次数不能保证消除摩尔纹。圆形明亮配方尚未验证达到八心八箭。
-This custom convex-solid ray tracer uses actual cut boundaries, Snell refraction, Fresnel splitting, total internal reflection, 20 spectral bands and Beer–Lambert absorption. Absorption is fitted and illumination approximates blackbody spectra. Full polarization, birefringence, pleochroism, indirect illumination and caustics are not implemented. Fine aliasing or shimmer can remain; fewer bounces do not guarantee its removal. The round-brilliant recipe is not a verified hearts-and-arrows cut.
+默认像素通道使用真实切形上的主透射路径、有限全反射、分段明暗和美术调色；把光程压缩到便于阅读的有限色阶。变石调色由光源光谱与同一组拟合吸收参数共同驱动。它不是拟真画面后套马赛克；少量火彩用不同折射率光线的出射差定位。
+The default pixel channel uses the cut solid’s primary transmitted path, limited total internal reflection, stepped values and art palettes, compressing path lengths for readable colour bands. Alexandrite palettes follow source spectra and shared fitted absorption. Fire placement follows differing refractive-index exit paths.
+
+真实通道是自写的凸多面体光线追踪原型：实际切后边界、Snell 折射、Fresnel 能量分配、全反射、20 波段色散与 Beer–Lambert 吸收。吸收谱为拟合，照明为黑体近似；未完整模拟偏振、双折射、多色性、完整间接照明和焦散。反射次数有限，仍可能有细小混叠或转动闪烁。减少反射次数不能保证消除摩尔纹。圆形明亮配方尚未验证达到八心八箭。
+The optional spectral channel uses a custom convex-solid ray tracer with actual cut boundaries, Snell refraction, Fresnel splitting, total internal reflection, 20 spectral bands and Beer–Lambert absorption. Absorption is fitted and illumination approximates blackbody spectra. Full polarization, birefringence, pleochroism, indirect illumination and caustics are not implemented. Fine aliasing or shimmer can remain; fewer bounces do not guarantee its removal. The round-brilliant recipe is not a verified hearts-and-arrows cut.
 
 缺角会实际截去体积，尚不能生成凹入的贝壳状破口。晶向风险、评分和温度阈值是游戏设计，不是实际加工指南。硬度不等于韧性；玻璃也不能一概认定无法切刻面。
 Chips remove actual volume through convex truncation, rather than modeling concave conchoidal fractures. Risk, score and heat thresholds are gameplay values, not manufacturing guidance. Hardness differs from toughness; glass can be faceted under suitable conditions.
@@ -72,8 +81,8 @@ Run the command above for model tests; additional scripts cover all material/cut
 [Grace Pandora 坦格利安与工坊故事草案](docs/角色与故事方案.md)：昵称“潘潘”，24 岁主角与外出旅行的爷爷，以及不阻塞操作的开场自我介绍。本次仅提交方案，现有游戏剧情与 v0.9.0 下载版保持原样。
 [Character and story proposal](docs/角色与故事方案.md): Grace Pandora Targaryen, nicknamed Panpan; a 24-year-old protagonist; a grandfather away on a journey; and an unobtrusive opening introduction. This is a proposal only; the current game narrative and v0.9.0 download remain unchanged.
 
-[宝石材质风格修订与大展台样张](docs/像素化展台方案.md)：依据原视频画面重新设计刻面色块、轮廓与高光；上一轮马赛克方案已否定。附可复现材质原型，尚未接入主游戏。
-[Revised gem material and exhibition study](docs/像素化展台方案.md): facet colours, outlines and highlights redesigned against the video. The mosaic approach is rejected. Includes a reproducible material prototype, not yet integrated into the main game.
+[像素材质与大展台接入说明](docs/像素化展台方案.md)：当前源码已接入主游戏与收藏室，含变石双光源及真实通道截图、验证与模型边界。
+[Pixel material and exhibition integration](docs/像素化展台方案.md): integrated into the source game and collection room, with alexandrite lighting comparisons, the spectral channel, validation and model limits.
 
 ## 署名与许可 / Credits and licenses
 

@@ -32,6 +32,10 @@ func run() -> void:
 		app.run_fast_steps()
 		if not app.fast_mode: break
 	assert(app.model.stage==4)
+	app.exhibition.close()
+	app.world.real_mode=true
+	app.exhibition.close()
+	app.world.real_mode=true
 	app.world.set_process(false)
 	app.world.auto_rotate=false
 	app.world.t=0.0

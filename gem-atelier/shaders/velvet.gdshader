@@ -6,10 +6,11 @@ float noise(vec2 p) {
 	return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);
 }
 void fragment() {
-	vec2 p=UV*vec2(980.0,480.0);
+	vec2 p=(floor(UV*vec2(980.0,480.0)/2.0)+vec2(0.5))*2.0;
 	float nap=noise(p*0.22)*0.025+noise(p*0.65)*0.016;
 	float fold=sin(p.x*0.012+noise(p*0.008)*2.0)*0.016;
 	float light=0.85+0.15*(1.0-length((UV-vec2(0.42,0.3))*0.75));
-	vec3 cloth=(vec3(0.135,0.20,0.185)+nap+fold)*light;
+	float shade=floor((nap+fold)*45.0)/45.0;
+ vec3 cloth=vec3(0.135,0.20,0.185)+shade;
 	COLOR=vec4(cloth,1.0);
 }

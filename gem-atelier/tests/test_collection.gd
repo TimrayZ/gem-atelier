@@ -56,7 +56,7 @@ func run() -> void:
 	await process_frame
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png(ProjectSettings.globalize_path("res://../artifacts/v09-collection-inspect.png"))
-	await click(Vector2(970,644))
+	await click(Vector2(1010,668))
 	assert(app.collection_room.visible and app.model==original,"Back returns to collection and restores working stone")
 	await click(Vector2(978,67))
 	assert(not app.collection_room.visible and app.model==original)

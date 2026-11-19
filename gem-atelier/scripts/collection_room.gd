@@ -104,42 +104,19 @@ func add_piece(index: int) -> void:
 	var optical:=ColorRect.new()
 	optical.size=Vector2(264,160)
 	var material:=ShaderMaterial.new()
-	material.shader=preload("res://shaders/gem_optics.gdshader")
-	var planes:=PackedVector4Array()
-	for f in host.model.collection_body(entry):
-		var n: Vector3=f.n.rotated(Vector3.UP,0.35).rotated(Vector3.RIGHT,-0.9)
-		planes.append(Vector4(n.x,n.y,n.z,f.d))
-	material.set_shader_parameter("plane_count",planes.size())
-	planes.resize(256)
-	material.set_shader_parameter("planes",planes)
-	material.set_shader_parameter("center",Vector2(142,98))
-	material.set_shader_parameter("gem_scale",1.4)
-	material.set_shader_parameter("max_bounces",12)
-	material.set_shader_parameter("pixel_footprint",Vector2(284.0/264.0,207.0/160.0))
-	material.set_shader_parameter("refractive_index",host.model.GEMS[gem_id].ri)
-	material.set_shader_parameter("dispersion",host.model.GEMS[gem_id].dispersion)
-	material.set_shader_parameter("absorption_bands",host.model.Data.bands(gem_id))
+	var sample={"gem_id":gem_id,"GEMS":host.model.GEMS,"Data":host.model.Data}
+	preload("res://scripts/gem_renderer.gd").configure(material,sample,host.model.collection_body(entry),0.35,-0.9,0,false,Vector2(264.0/160.0*207.0,207),1.6,Vector2(207.0/160.0,207.0/160.0))
 	optical.material=material
 	viewport.add_child(optical)
-	var shadow:=TextureRect.new()
-	# A wide soft matte shadow seats the gem onto the cloth.
-	var gradient:=Gradient.new()
-	gradient.colors=PackedColorArray([Color(0,0,0,0.45),Color.TRANSPARENT])
-	var tex:=GradientTexture2D.new()
-	tex.gradient=gradient
-	tex.fill=GradientTexture2D.FILL_RADIAL
-	tex.fill_from=Vector2(0.5,0.5)
-	tex.fill_to=Vector2(1,0.5)
-	shadow.texture=tex
-	shadow.position=Vector2(80,97)
-	shadow.size=Vector2(134,20)
-	shadow.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	var shadow:=Polygon2D.new()
+	shadow.polygon=PackedVector2Array([Vector2(87,107),Vector2(111,101),Vector2(174,101),Vector2(207,108),Vector2(180,116),Vector2(111,115)])
+	shadow.color=Color(0.025,0.045,0.04,0.48)
 	card.add_child(shadow)
 	var image:=TextureRect.new()
 	image.position=Vector2(15,0)
 	image.size=Vector2(264,160)
 	image.texture=viewport.get_texture()
-	image.texture_filter=CanvasItem.TEXTURE_FILTER_LINEAR
+	image.texture_filter=CanvasItem.TEXTURE_FILTER_NEAREST
 	image.mouse_filter=Control.MOUSE_FILTER_IGNORE
 	card.add_child(image)
 	var caption:=Label.new()
