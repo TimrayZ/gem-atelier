@@ -2,6 +2,7 @@ shader_type canvas_item;
 render_mode unshaded;
 // Same convex boundary planes as the cut solid, transformed into camera space.
 uniform vec4 planes[256];
+uniform vec3 facet_centers[256];
 uniform int plane_count = 0;
 uniform vec2 logical_size = vec2(284.0,207.0);
 uniform vec2 center = vec2(142.0, 99.0);
@@ -37,8 +38,15 @@ float source_spd(float l) {
 float environment(vec3 point,vec3 d){
  float broad=step(0.78,dot(d,normalize(vec3(-0.6,-0.7,0.6))));
  float rim=step(0.88,dot(d,normalize(vec3(0.8,-0.25,-0.3))));
- float glint=step(0.992,dot(d,normalize(vec3(-0.20,-0.42,0.88))));
- return 0.18+broad*1.35+rim*0.85+glint*5.0;
+ float glint=step(0.985,dot(d,normalize(vec3(-0.20,-0.42,0.88))));
+ float sparkle=step(0.988,dot(d,normalize(vec3(0.55,0.25,0.80))));
+ float sparkle2=step(0.990,dot(d,normalize(vec3(-0.75,0.32,0.58))));
+ float base=0.12+broad*1.65+rim*1.35+glint*6.0+sparkle*5.0+sparkle2*4.5+step(0.72,dot(d,normalize(vec3(0.2,0.65,0.7))))*1.0;
+ float left=step(0.78,dot(d,normalize(vec3(-0.82,0.25,0.52))));
+ float right=step(0.78,dot(d,normalize(vec3(0.78,-0.15,0.60))));
+ float overhead=step(0.82,dot(d,normalize(vec3(0.0,-0.92,0.40))));
+ float narrow=step(0.965,dot(d,normalize(vec3(0.55,0.72,0.42))));
+ return base+left*0.8+right*0.8+overhead*0.8+narrow*4.0;
 }
 
 bool entry_hit(vec3 o, vec3 d, out float distance, out vec3 normal) {
@@ -144,19 +152,23 @@ vec3 spectral_material(vec3 point,vec3 d,vec3 normal){
  body_xyz/=max(white_y,0.001);xyz/=max(white_y,0.001);white_xyz/=max(white_y,0.001);
  // Partial adaptation preserves the source colour on colourless stones.
  vec3 rgb=max(xyz_to_rgb(xyz),vec3(0.0))/pow(max(xyz_to_rgb(white_xyz),vec3(0.08)),vec3(0.75));
- rgb*=1.35;
+ rgb*=1.65;
  float peak=max(rgb.r,max(rgb.g,rgb.b));
  rgb/=1.0+peak*0.65;
  rgb=pow(clamp(rgb,vec3(0.0),vec3(1.0)),vec3(1.0/2.2));
  peak=max(rgb.r,max(rgb.g,rgb.b));
  // A small brightness/chromaticity vocabulary, instead of a material tint.
  vec3 hue=rgb/max(peak,0.001);
+ // Expand subtle spectral differences into readable pixel-art flashes.
+ float average=(hue.r+hue.g+hue.b)/3.0;
+ float fire_strength=clamp(dispersion/0.044,0.0,2.0);
+ hue=clamp(vec3(average)+(hue-vec3(average))*(1.0+1.25*fire_strength),vec3(0.0),vec3(1.0));
  vec3 body=max(xyz_to_rgb(body_xyz),vec3(0.0))/pow(max(xyz_to_rgb(white_xyz),vec3(0.08)),vec3(0.75));
  body/=max(0.001,max(body.r,max(body.g,body.b)));
  float chroma=max(body.r,max(body.g,body.b))-min(body.r,min(body.g,body.b));
  // An illustrative material colour derived from absorption × source SPD,
  // never a per-gem RGB paint. Colourless materials retain the traced fire hue.
- if(chroma>0.25 && max(rgb.r,max(rgb.g,rgb.b))<0.92)hue=mix(hue,pow(body,vec3(1.25)),0.82);
+ if(chroma>0.25 && max(rgb.r,max(rgb.g,rgb.b))<0.92)hue=mix(hue,pow(body,vec3(1.25)),0.65);
  hue=floor(hue*10.0+0.5)/10.0;
  float value=floor(peak*6.0+0.5)/6.0;
  return hue*value;
@@ -178,8 +190,29 @@ void fragment(){
  }
  if(!hit)COLOR=vec4(vec3(0.08),silhouette?1.0:0.0);
  else{
-  vec3 colour=spectral_material(p,d,n);
-  if(edge)colour=mix(colour,vec3(max(colour.r,max(colour.g,colour.b))),0.25);
+  // Group pixels by both their front facet and the first internal facet reached.
+  vec3 internal_ray=refract(d,n,1.0/refractive_index);
+  float nearest=10000.0;
+  int exit_face=-1;
+  for(int i=0;i<256;i++){
+   if(i>=plane_count)break;
+   float denominator=dot(planes[i].xyz,internal_ray);
+   if(denominator>0.00001){
+    float t=(planes[i].w-dot(planes[i].xyz,p))/denominator;
+    if(t>0.01 && t<nearest){nearest=t;exit_face=i;}
+   }
+  }
+  vec3 sample_point=p;
+  if(exit_face>=0){
+   float denominator=dot(internal_ray,n);
+   if(abs(denominator)>0.01){
+    vec3 exit_center=facet_centers[exit_face];
+    sample_point=exit_center-internal_ray*dot(exit_center-p,n)/denominator;
+   }
+  }
+  vec3 sample_ray=normalize(sample_point-vec3(0.0,0.0,220.0));
+  vec3 colour=spectral_material(sample_point,sample_ray,n);
+  if(edge)colour=mix(colour,vec3(max(colour.r,max(colour.g,colour.b))),0.12);
   if(silhouette)colour*=0.32;
   COLOR=vec4(colour,1.0);
  }

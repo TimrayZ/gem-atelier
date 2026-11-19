@@ -6,12 +6,20 @@ static func configure(material: ShaderMaterial, model, body: Array, yaw: float, 
 	var shader=REAL if real_mode else PIXEL
 	if material.shader!=shader: material.shader=shader
 	var planes:=PackedVector4Array()
+	var centers:=PackedVector3Array()
 	for face in body:
 		var n: Vector3=face.n.rotated(Vector3.UP,yaw).rotated(Vector3.RIGHT,tilt)
 		planes.append(Vector4(n.x,n.y,n.z,face.d))
+		var center:=Vector3.ZERO
+		for vertex in face.v: center+=vertex
+		center/=face.v.size()
+		centers.append(center.rotated(Vector3.UP,yaw).rotated(Vector3.RIGHT,tilt))
 	material.set_shader_parameter("plane_count",mini(planes.size(),256))
 	planes.resize(256)
 	material.set_shader_parameter("planes",planes)
+	if not real_mode:
+		centers.resize(256)
+		material.set_shader_parameter("facet_centers",centers)
 	material.set_shader_parameter("logical_size",logical)
 	material.set_shader_parameter("center",logical*0.5)
 	material.set_shader_parameter("gem_scale",scale)
@@ -22,4 +30,4 @@ static func configure(material: ShaderMaterial, model, body: Array, yaw: float, 
 	material.set_shader_parameter("illuminant",light)
 	material.set_shader_parameter("pixel_footprint",footprint)
 	material.set_shader_parameter("max_bounces",bounces)
-	material.set_shader_parameter("art_pixel",maxf(logical.y/259.0,footprint.y) if logical.x>300 else 1.0)
+	material.set_shader_parameter("art_pixel",maxf(logical.y/150.0,footprint.y) if logical.x>300 else 1.5)

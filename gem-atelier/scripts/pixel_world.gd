@@ -9,7 +9,7 @@ var physics_root: Node3D
 var optics: ColorRect
 var optics_material: ShaderMaterial
 var optics_display: TextureRect
-var max_bounces := 12
+var max_bounces := 6
 var real_mode := false
 var large_view_active := false
 const Renderer=preload("res://scripts/gem_renderer.gd")
@@ -315,7 +315,7 @@ func draw_solid(body: Array, center: Vector2, scale_factor: float, finished: boo
 		var shade: float = maxf(0.0,f.n.dot(light))
 		var raw: bool = f.tag == -1
 		var c: Color = Color("82745c") if raw and model.crust else displayed_color
-		c = c.darkened(0.52-floor(shade*4.0)/4.0*0.40) if raw else c.darkened(0.70-shade*0.53)
+		c = c.darkened(0.62-floor(shade*4.0)/4.0*0.58) if raw else c.darkened(0.70-shade*0.53)
 		if raw:
 			c = c.lightened(fmod(absf(f.n.x*17.0+f.n.z*23.0),0.06))
 		elif f.tag == -3:
@@ -336,7 +336,7 @@ func draw_solid(body: Array, center: Vector2, scale_factor: float, finished: boo
 			var packed=PackedVector2Array(f.p)
 			var border=packed.duplicate()
 			border.append(border[0])
-			draw_polyline(border,c.lightened(0.14),1.0)
+			draw_polyline(border,c.lightened(0.20),1.0)
 			var mid=Vector2.ZERO
 			for point in packed: mid+=point/packed.size()
 			if model.gem_id in [1,2,6,8]:

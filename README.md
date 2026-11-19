@@ -3,8 +3,8 @@
 挑一块原石，慢慢切出自己的宝石。做完换盏灯，转一转，再把它放进绒布收藏室。
 Choose a rough stone, cut and polish it, turn it under different lights, then keep it in your velvet-lined collection.
 
-**v0.11.0 Windows 体验版：10 种原料 × 10 种切工。**
-**v0.11.0 Windows preview: 10 materials × 10 cuts.**
+**v0.12.0 Windows 体验版：10 种原料 × 10 种切工。**
+**v0.12.0 Windows preview: 10 materials × 10 cuts.**
 
 [下载游戏 / Download](https://github.com/TimrayZ/gem-atelier/releases/latest) · [宣传素材 / Media kit](https://github.com/TimrayZ/gem-atelier/releases/download/v0.11.0/GemAtelier-v0.11.0-MediaKit.zip)
 
@@ -12,7 +12,7 @@ Choose a rough stone, cut and polish it, turn it under different lights, then ke
 
 ## 开始游玩 / Play
 
-1. 下载 **GemAtelier-v0.11.0-Windows-x64.zip**，完整解压，双击 **GemAtelier.exe**。无需安装 Godot，无需联网。
+1. 下载 **GemAtelier-v0.12.0-Windows-x64.zip**，完整解压，双击 **GemAtelier.exe**。无需安装 Godot，无需联网。
 2. 左侧选择原料，右侧选择切工；按右下角按钮逐步加工，或按 **F8** 自动完成后续工序。
 3. 成品拖动旋转、滚轮缩放，按 **1 / 2 / 3** 比较日光、白炽灯与中性光。
 4. 喜欢就收入收藏室。点击收藏中的宝石，可随时重新旋转、换光查看。
@@ -27,7 +27,7 @@ Requires 64-bit Windows 10/11 and OpenGL 3.3. Both render channels expose 6/12/2
 - **10 种原料**：亚历山大变石、紫水晶、蓝宝石、钻石、透明正长石、合成莫桑石、祖母绿、粉色尖晶石、金色托帕石、红宝石。
 - **10 种切工**：八角单翻、椭圆、八重对称、长方阶梯、圆形明亮（心箭试验）、枕形、梨形、马眼、切角三角、六边阶梯。圆形明亮尚未验证达到八心八箭。
 - 原生晶形与磨圆料可选；切削逐面移除实际体积，切歪、崩角也会保留在作品中。每面一次抛光，支持滴水冷却与压力选择。
-- 默认光谱像素材质，保留清晰刻面、通透感、反光与转动火彩。钻石随照明呈色，莫桑石使用更高色散，变石在日光和白炽灯下改变颜色。
+- 默认像素材质按前后刻面归并光影，采用多方向灯光和较大色块；随转动显示反光与火彩。钻石随照明呈色，莫桑石使用更高色散，变石在日光和白炽灯下改变颜色。
 - 大展台与独立绒布收藏室；按 **R** 切换像素／真实通道，两者均为纯色背景。
 - 左侧百科收录组成、典型晶形、硬度、韧性、解理、折射率与拟合吸收谱。
 - 支持导入 **GemCAD .asc / Gem Cut Studio .gcs** 常见平面刻面子集。压缩包“示例切工”包含两份等价的原创 CC0 练习设计。
@@ -66,8 +66,8 @@ Collect finished pieces to save the imported recipe and actual geometry. Saves a
 
 ## 模拟范围 / Simulation limits
 
-两个通道均沿实际凸实体追踪光路，包含 Snell 折射、Fresnel 分配、全反射、色散与 Beer–Lambert 路径吸收。像素通道使用 12 波段并量化明暗／颜色，真实通道使用 20 波段。呈色由光源光谱与拟合吸收共同决定；更高色散的火彩仍依赖切工、观察角与光源。
-Both channels trace the actual convex solid using Snell refraction, Fresnel splitting, total internal reflection, dispersion and Beer–Lambert path absorption. Pixel mode uses 12 spectral bands and quantized values/colours; detailed mode uses 20 bands. Source spectra and fitted absorption determine colour; visible fire depends on cut, view and illumination.
+两个通道均沿实际凸实体追踪光路，包含 Snell 折射、Fresnel 分配、全反射、色散与 Beer–Lambert 路径吸收。像素通道使用 12 波段与按前后刻面归并的采样，并量化明暗／颜色，真实通道使用 20 波段。呈色由光源光谱与拟合吸收共同决定；更高色散的火彩仍依赖切工、观察角与光源。
+Both channels trace the actual convex solid using Snell refraction, Fresnel splitting, total internal reflection, dispersion and Beer–Lambert path absorption. Pixel mode uses 12 spectral bands, facet-grouped sampling, stylized lights and quantized values/colours; detailed mode uses 20 bands. Source spectra and fitted absorption determine colour; visible fire depends on cut, view and illumination.
 
 吸收谱、晶向风险与温度阈值是游戏近似，未完整实现偏振、双折射、多色性、间接照明与焦散。细小混叠或转动闪烁仍可能出现。原石是简化单晶；缺角通过凸截面移除体积，不模拟凹入贝壳状破口。参数不用于现实加工指导。
 Spectra, cleavage risk and heat thresholds are gameplay approximations. Full polarization, birefringence, pleochroism, indirect illumination and caustics remain incomplete. Fine aliasing or shimmer may remain. Roughs are simplified single crystals; chips remove volume with convex planes rather than concave fractures. Parameters are not manufacturing guidance.
