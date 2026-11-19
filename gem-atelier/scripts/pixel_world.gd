@@ -22,6 +22,10 @@ var seen_generation := -1
 var yaw: float = 0.35
 var tilt: float = -0.52
 var light_mode: int = 0
+var light_weights := Vector3(1,0,0)
+var light_start := Vector3(1,0,0)
+var light_target := 0
+var light_transition := 1.0
 var working: bool = false
 var auto_rotate: bool = false
 var t: float = 0.0
@@ -33,6 +37,7 @@ func _process(delta: float) -> void:
 	t += delta
 	if model == null:
 		return
+	advance_light(delta)
 	if auto_rotate and model.stage == 4:
 		yaw += delta * 0.3
 	var key: String = ["day", "warm", "neutral"][light_mode]
@@ -46,6 +51,16 @@ func _process(delta: float) -> void:
 	if working and particles.size() < 45 and int(t * 40) % 2 == 0:
 		particles.append({"pos": Vector2(145, 142), "vel": Vector2(randf_range(-50, 65), randf_range(-55, -15)), "life": randf_range(0.15, 0.5)})
 	queue_redraw()
+
+func advance_light(delta: float) -> void:
+	if light_mode != light_target:
+		light_start = light_weights
+		light_target = light_mode
+		light_transition = 0.0
+	light_transition = minf(1.0, light_transition + maxf(delta,0.0)/0.65)
+	var target := Vector3(1,0,0) if light_target==0 else (Vector3(0,1,0) if light_target==1 else Vector3(0,0,1))
+	var blend := smoothstep(0.0,1.0,light_transition)
+	light_weights = light_start.lerp(target,blend)
 
 func block(x: float, y: float, w: float, h: float, c: Color) -> void:
 	draw_rect(Rect2(roundf(x), roundf(y), w, h), c)
@@ -255,14 +270,14 @@ func update_solid_visuals(_delta: float) -> void:
 	optics.visible = model.stage == 4 and optical_enabled and not large_view_active
 	if is_instance_valid(optics_display): optics_display.visible = optics.visible
 	if optics.visible:
-		Renderer.configure(optics_material,model,model.body,yaw,tilt,light_mode,real_mode,Vector2(284,207),1.5*zoom,Vector2(0.5,0.5),max_bounces)
+		Renderer.configure(optics_material,model,model.body,yaw,tilt,light_mode,real_mode,Vector2(284,207),1.5*zoom,Vector2(0.5,0.5),max_bounces,light_weights)
 		var inclusions := PackedVector4Array()
 		for p in [Vector3(-6,-4,8),Vector3(9,8,-6),Vector3(-11,12,4)]:
 			var v: Vector3 = rotate_vertex(p)
 			inclusions.append(Vector4(v.x,v.y,v.z,0.55 if model.gem_id==3 else 1.2))
 		optics_material.set_shader_parameter("inclusions",inclusions)
 		optics_material.set_shader_parameter("inclusion_count",(1 if model.gem_id==3 else 3) if inclusion_enabled else 0)
-		optics_material.set_shader_parameter("scattering_strength", (0.00003 if model.gem_id==3 else (0.001 if model.gem_id==4 else 0.00015))+model.thermal_damage*0.00002)
+		optics_material.set_shader_parameter("scattering_strength", (0.004 if model.gem_id==10 else (0.00003 if model.gem_id==3 else (0.001 if model.gem_id==4 else 0.00015)))+model.thermal_damage*0.00002)
 		optics_material.set_shader_parameter("surface_roughness",0.004+minf(0.06,model.thermal_damage*0.0015))
 		optics_material.set_shader_parameter("refractive_index", model.GEMS[model.gem_id].ri)
 		optics_material.set_shader_parameter("dispersion", model.GEMS[model.gem_id].dispersion)
@@ -313,18 +328,25 @@ func draw_solid(body: Array, center: Vector2, scale_factor: float, finished: boo
 	for f in body:
 		var points: Array = []
 		var depth := 0.0
+		var zone_position := 0.0
 		for p in f.v:
+			zone_position += p.y if model.gem_id==10 else p.x
 			var v: Vector3 = machine_vertex(p) if machine else rotate_vertex(p)
 			points.append(center+Vector2(v.x,v.y)*scale_factor*(220.0/(220.0-v.z) if finished else 1.0))
 			depth += v.z
 		var n: Vector3 = machine_vertex(f.n) if machine else rotate_vertex(f.n)
-		faces.append({"p":points,"n":n,"z":depth/f.v.size(),"tag":f.tag})
+		faces.append({"p":points,"n":n,"z":depth/f.v.size(),"tag":f.tag,"zone":zone_position/f.v.size()})
 	faces.sort_custom(func(a,b): return a.z < b.z)
 	var light := Vector3(-0.45,-0.75,0.8).normalized()
 	for f in faces:
 		var shade: float = maxf(0.0,f.n.dot(light))
 		var raw: bool = f.tag == -1
 		var c: Color = Color("82745c") if raw and model.crust else displayed_color
+		if model.gem_id in [10,11,12] and not (raw and model.crust):
+			var zone: float = smoothstep(-20.0,20.0,float(f.zone))
+			var zone_a: Color = Color("e4e9d9") if model.gem_id==10 else (Color("ad88c9") if model.gem_id==11 else Color("e69ab4"))
+			var zone_b: Color = Color("65b780") if model.gem_id in [10,12] else Color("e2bd72")
+			c=zone_a.lerp(zone_b,zone)
 		c = c.darkened(0.62-floor(shade*4.0)/4.0*0.58) if raw else c.darkened(0.70-shade*0.53)
 		if raw:
 			c = c.lightened(fmod(absf(f.n.x*17.0+f.n.z*23.0),0.06))
@@ -335,7 +357,7 @@ func draw_solid(body: Array, center: Vector2, scale_factor: float, finished: boo
 		elif f.tag >= 0:
 			var polished: float = model.polish[f.tag]
 			var spec: float = pow(maxf(0.0,f.n.dot(Vector3(-0.3,-0.4,0.86).normalized())),32.0)
-			c = c.lerp(displayed_color.lightened(0.75),spec*polished)
+			c = c.lerp(c.lightened(0.75),spec*polished)
 			if not finished and f.tag == model.facet: c = c.lightened(0.10)
 		if model.crust and f.tag >= 0:
 			poly(f.p,Color("82745c").darkened(0.65-shade*0.45))
@@ -389,8 +411,11 @@ func spawn_chunk(event: Dictionary) -> void:
 	convex.points = vertices
 	collider.shape = convex
 	body.add_child(collider)
-	body.mass = maxf(0.001,Solid.volume(event.body)*0.00001)
-	body.gravity_scale = 0.18
+	body.mass = clampf(Solid.volume(event.body)*0.00001,0.001,3.0)
+	body.gravity_scale = 0.55
+	body.linear_damp = 0.08
+	body.angular_damp = 0.3
+	body.continuous_cd = true
 	var material := PhysicsMaterial.new()
 	material.bounce = 0.18
 	material.friction = 0.8
@@ -398,9 +423,14 @@ func spawn_chunk(event: Dictionary) -> void:
 	physics_root.add_child(body)
 	var pos := machine_vertex(center)*0.72
 	body.position = Vector3((machine_center.x+pos.x)*0.01,-(machine_center.y+pos.y)*0.01,pos.z*0.01)
-	body.linear_velocity = Vector3(randf_range(-0.18,0.18),0.05,0.02)
-	body.angular_velocity = Vector3(randf_range(-2,2),randf_range(-2,2),randf_range(-2,2))
-	chunks.append({"node":body,"faces":transformed,"life":2.5,"crack":event.fracture})
+	# Larger fragments leave the cut more slowly; their convex collision shape
+	# then tumbles and settles against the workbench collider.
+	var outward := Vector2(pos.x,pos.z).normalized()
+	if outward.length_squared() < 0.01: outward = Vector2(1,0)
+	var kick := clampf(0.12 / sqrt(body.mass+0.04),0.05,0.38)
+	body.linear_velocity = Vector3(outward.x*kick,0.04,outward.y*kick)
+	body.angular_velocity = Vector3(randf_range(-1.8,1.8),randf_range(-1.8,1.8),randf_range(-1.8,1.8))
+	chunks.append({"node":body,"faces":transformed,"life":3.5,"crack":event.fracture})
 
 func draw_chunk(chunk: Dictionary) -> void:
 	if not is_instance_valid(chunk.node): return

@@ -18,6 +18,17 @@ var debug_mode := false
 var debug_checkbox: CheckBox
 var sound
 var fast_mode := false
+var demo_random := false
+var demo_run := false
+var experience := 0
+var panpan_sleeping := false
+var repair_generation := -1
+var score_popup := ""
+var score_popup_time := 0.0
+var score_label: Label
+var progression_path := "user://progression.cfg"
+var retry_by_facet: Dictionary = {}
+var stroke_start := 0.0
 var bgm_enabled := true
 var model = Workshop.new()
 var world
@@ -47,13 +58,14 @@ var audio_playback: AudioStreamGeneratorPlayback
 var audio_phase: float = 0.0
 
 func _ready() -> void:
-	get_window().title = "石间 · Gem Atelier 0.13.0 · 石间小铺"
+	get_window().title = "石间 · Gem Atelier 0.14.0 · 石间小铺"
 	font = SystemFont.new()
 	font.font_names = PackedStringArray(["Microsoft YaHei UI", "Microsoft YaHei", "Noto Sans CJK SC", "PingFang SC", "sans-serif"])
 	font_bold = SystemFont.new()
 	font_bold.font_names = font.font_names
 	font_bold.font_weight = 700
 	model.load_collection()
+	load_progression()
 	build_theme()
 	build_world()
 	build_controls()
@@ -161,7 +173,7 @@ func build_controls() -> void:
 	button("encyclopedia", "百科", Rect2(174,173,60,25), open_encyclopedia)
 	button("pressure", "力度 · 轻", Rect2(866,280,102,29), func(): model.pressure = 1.0 if model.pressure>1.1 else 1.8; refresh(), "轻压适合精细切削；重压更快，但脆性材料与解理方向更容易崩角。")
 	button("axis", "晶向 · A", Rect2(974,280,102,29), func(): model.crystal_orientation = (model.crystal_orientation+1)%3; refresh(), "相对加工轴旋转晶体方向（简化模型）；影响解理风险，不改变已切出的表面。")
-	button("bounces", "光路 · 12 次", Rect2(866,352,210,30), func(): world.max_bounces = {6:12,12:20,20:6}[world.max_bounces]; refresh(), "6 次更快；12 / 20 次保留更多内部反射。减少次数可能损失光能，不能代替抗锯齿。")
+	button("bounces", "光路 · 6 次", Rect2(866,352,210,30), func(): world.max_bounces = {3:6,6:12,12:20,20:3}.get(world.max_bounces,6); refresh(), "3 / 6 次更简洁；12 / 20 次保留更多内部反射。减少次数可能损失光能，不能代替抗锯齿。")
 	button("notes", "爷爷的手记  ?", Rect2(570,32,124,38), open_notes)
 	debug_checkbox=CheckBox.new()
 	debug_checkbox.text="调试：跳过简介"
@@ -171,7 +183,9 @@ func build_controls() -> void:
 	debug_checkbox.add_theme_color_override("font_color",WHITE)
 	debug_checkbox.toggled.connect(func(value): set_debug(value,true))
 	add_child(debug_checkbox)
-	button("fast", "F8  快速加工 · 约 30 倍", Rect2(570, 73, 260, 24), toggle_fast, "自动完成后续工序；再次按 F8 停止。保留已切出的错误，过热仍会报废。")
+	button("fast", "F8 完美快进", Rect2(570, 73, 125, 24), toggle_fast, "从当前进度完美完成剩余工序；已切出的形状与误差保留，不获得经验。")
+	button("random_demo", "F9 随机快进", Rect2(700, 73, 130, 24), toggle_random_demo, "从当前进度随机完成剩余工序；技术越高，自动切歪的概率越低，不获得经验。")
+	button("magic", "潘潘的魔法", Rect2(320, 32, 238, 38), use_magic, "修复最近一次崩角或裂损；完成一颗全 A 或更好的手工作品后醒来。")
 	button("bgm", "音乐 · 开", Rect2(704,32,102,38), func(): bgm_enabled = not bgm_enabled; refresh())
 	button("collection", "收藏室  /  %02d" % model.collection.size(), Rect2(930, 32, 162, 38), show_collection)
 	button("mute", "声音 · 开", Rect2(816, 32, 102, 38), func(): mute = not mute; refresh())
@@ -189,7 +203,9 @@ func build_controls() -> void:
 	var gem_list=VBoxContainer.new()
 	gem_list.custom_minimum_size=Vector2(174,0)
 	gem_scroll.add_child(gem_list)
-	for i in range(model.GEMS.size()):
+	var gem_order: Array = range(model.GEMS.size())
+	gem_order.sort_custom(func(a, b): return model.ROUGH_PRICES[a] < model.ROUGH_PRICES[b])
+	for i in gem_order:
 		var gem_button: Button=buttons["gem%d"%i]
 		remove_child(gem_button)
 		gem_button.custom_minimum_size=Vector2(174,46)
@@ -200,7 +216,7 @@ func build_controls() -> void:
 	button("finish", "03  终抛 · 材料适配盘", Rect2(866, 280, 210, 29), func(): model.wheel = 2; refresh())
 	for i in range(model.SHAPES.size()):
 		var selected := i
-		button("shape%d"%i,model.SHAPES[i],Rect2(866,216+i*38,210,31),func(): model.reset(model.gem_id,selected); refresh())
+		button("shape%d"%i,model.SHAPES[i],Rect2(866,216+i*38,210,31),func(): model.reset(model.gem_id,selected); demo_run = false; refresh())
 	var shape_scroll=ScrollContainer.new()
 	shape_scroll.position=Vector2(866,216)
 	shape_scroll.size=Vector2(210,176)
@@ -210,7 +226,8 @@ func build_controls() -> void:
 	var shape_list=VBoxContainer.new()
 	shape_list.custom_minimum_size=Vector2(192,0)
 	shape_scroll.add_child(shape_list)
-	for i in range(model.SHAPES.size()):
+	var shape_order := [10,11,8,12,0,3,13,9,1,5,6,7,2,4]
+	for i in shape_order:
 		var b: Button=buttons["shape%d"%i]
 		remove_child(b)
 		b.custom_minimum_size=Vector2(192,31)
@@ -275,7 +292,18 @@ func build_controls() -> void:
 		button("light%d" % i, ["日光 · 6500 K", "白炽灯 · 2850 K", "中性光 · 4500 K"][i], Rect2(866, 216 + i * 46, 210, 36), func(): world.light_mode = mode; refresh())
 	button("spin", "自动旋转   关闭", Rect2(866, 402, 210, 34), func(): world.auto_rotate = not world.auto_rotate; refresh())
 	button("reset_view", "重置观赏角度", Rect2(866, 444, 210, 34), func(): world.yaw = 0.35; world.tilt = -0.52; world.zoom = 1.0; refresh())
-	button("new", "再加工一颗  →", Rect2(44, 513, 190, 38), func(): model.reset(model.gem_id); world.auto_rotate = false; world.inspection = false; world.zoom = 1.0; refresh())
+	button("new", "再加工一颗  →", Rect2(44, 513, 190, 38), func(): model.reset(model.gem_id); demo_run = false; world.auto_rotate = false; world.inspection = false; world.zoom = 1.0; refresh())
+	score_label = Label.new()
+	score_label.position = Vector2(515,230)
+	score_label.size = Vector2(150,45)
+	score_label.add_theme_font_override("font",font_bold)
+	score_label.add_theme_font_size_override("font_size",26)
+	score_label.add_theme_color_override("font_color",Color("fff2bf"))
+	score_label.add_theme_color_override("font_outline_color",Color("526b5d"))
+	score_label.add_theme_constant_override("outline_size",3)
+	score_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	score_label.z_index = 20
+	add_child(score_label)
 
 func build_audio() -> void:
 	sound = preload("res://scripts/workshop_audio.gd").new()
@@ -291,9 +319,32 @@ func _exit_tree() -> void:
 	if is_instance_valid(sound): sound.stop_all()
 
 func toggle_fast() -> void:
+	start_demo(false)
+
+func toggle_random_demo() -> void:
+	start_demo(true)
+
+func start_demo(randomized: bool) -> void:
 	stop_work()
 	if is_instance_valid(guide): guide.cancel()
-	fast_mode = not fast_mode if not model.failed and model.stage != 4 else false
+	if fast_mode:
+		fast_mode = false
+		refresh()
+		return
+	if active_workshop != null: return
+	if model.failed:
+		notify("原石已裂损，请先修复或重新领料。")
+		refresh()
+		return
+	if model.stage == 4:
+		notify("已经完成；想再试一颗，可以先重新领料。")
+		return
+	model.water = true
+	model.pressure = 1.0
+	demo_random = randomized
+	demo_run = true
+	fast_mode = true
+	notify("随机快进剩余工序，不获得经验。" if randomized else "完美快进剩余工序，已有误差会保留。")
 	refresh()
 
 func run_fast_steps() -> void:
@@ -313,10 +364,18 @@ func run_fast_steps() -> void:
 			continue
 		if values[model.facet] >= 1.0: model.next_facet(); continue
 		model.wheel = 0 if model.stage == 2 else 1
+		if model.stage == 2 and is_inf(model.starts[model.facet]):
+			model.angle = model.target_angle()
+			model.depth_offset = 0.0
+			if demo_random: apply_skill_error()
 		if model.stage == 3: model.angle = model.cut_angles[model.facet]
 		var result: int = model.work(0.04)
 		world.working = result == 0
 		if result == 1:
+			if model.stage == 2:
+				var deviation: float = absf(model.cut_angles[model.facet]-model.target_angle())
+				model.facet_grades[model.facet] = "S" if deviation < 0.1 else "B"
+				model.facet_scores[model.facet] = 100 if deviation < 0.1 else 75
 			sound.play_impact()
 			model.next_facet()
 			refresh()
@@ -330,15 +389,23 @@ func _process(delta: float) -> void:
 	t += delta
 	if fast_mode: run_fast_steps()
 	toast_time = maxf(0.0, toast_time - delta)
+	score_popup_time = maxf(0.0, score_popup_time-delta)
+	if is_instance_valid(score_label):
+		score_label.visible = score_popup_time > 0.0 and model.stage == 2
+		score_label.text = score_popup
+		score_label.position.y = 235.0 - (1.6-score_popup_time)*18.0
 	if holding and not facet_latched:
-		var result: int = model.work(delta)
+		var speed := cutting_speed(model.cut[model.facet]) if model.stage == 2 else 1.0
+		var result: int = model.work(delta*speed, model.stage == 2)
 		world.working = result >= 0
-		if result == 1:
+		if result == 1 and model.stage == 3:
 			sound.play_impact()
 			facet_latched = true
 			world.working = false
 			notify("第 %02d 面完成。松开，转到下一刻面。" % (model.facet + 1))
 			refresh()
+		elif result == 1:
+			world.working = false
 		elif result == -2:
 			stop_work()
 			notify(model.failure_reason + "。这一颗已损失，请重新领料。")
@@ -360,6 +427,11 @@ func _notification(what: int) -> void:
 func _input(event: InputEvent) -> void:
 	if is_instance_valid(cut_dialog) and cut_dialog.visible: return
 	if is_instance_valid(exhibition) and exhibition.visible:
+		if event is InputEventKey and event.pressed and not event.echo and event.keycode in [KEY_F8, KEY_F9] and active_workshop == null:
+			if event.keycode == KEY_F8: toggle_fast()
+			else: toggle_random_demo()
+			get_viewport().set_input_as_handled()
+			return
 		exhibition.handle_event(event)
 		return
 	if is_instance_valid(collection_room) and collection_room.visible:
@@ -374,6 +446,7 @@ func _input(event: InputEvent) -> void:
 		return
 	if is_instance_valid(guide) and guide.busy and event is InputEventKey and event.pressed:
 		if event.keycode==KEY_F8: toggle_fast()
+		elif event.keycode==KEY_F9: toggle_random_demo()
 		elif event.keycode==KEY_ESCAPE: guide.cancel()
 		elif event.keycode in [KEY_ENTER,KEY_SPACE]:
 			if guide.greeting: guide.open_page()
@@ -390,13 +463,17 @@ func _input(event: InputEvent) -> void:
 			toggle_fast()
 			get_viewport().set_input_as_handled()
 			return
+		if event.pressed and event.keycode == KEY_F9:
+			toggle_random_demo()
+			get_viewport().set_input_as_handled()
+			return
 		if event.keycode == KEY_SPACE and model.stage in [2, 3]:
 			if event.pressed:
 				start_work()
 			else:
 				stop_work()
 			get_viewport().set_input_as_handled()
-		if event.pressed and event.keycode in [KEY_LEFT, KEY_RIGHT] and model.stage in [2, 3]:
+		if event.pressed and not holding and event.keycode in [KEY_LEFT, KEY_RIGHT] and model.stage in [2, 3]:
 			model.next_facet(-1 if event.keycode == KEY_LEFT else 1)
 			refresh()
 		if event.pressed and model.stage == 4 and event.keycode in [KEY_1, KEY_2, KEY_3]:
@@ -434,15 +511,58 @@ func on_scene_input(event: InputEvent) -> void:
 func start_work() -> void:
 	if model.stage not in [2, 3] or model.failed or fast_mode or collection_room.visible or (is_instance_valid(guide) and guide.busy):
 		return
+	var values: Array[float] = model.cut if model.stage == 2 else model.polish
+	if values[model.facet] >= 1.0:
+		notify("这一面已经完成，换下一面吧。")
+		return
 	world.inspection = false
+	if model.stage == 2 and model.cut[model.facet] == 0.0 and is_inf(model.starts[model.facet]):
+		apply_skill_error()
+	stroke_start = model.cut[model.facet] if model.stage == 2 else model.polish[model.facet]
 	holding = true
 	refresh()
 
 func stop_work() -> void:
+	var was_holding := holding
 	holding = false
 	if world != null: world.working = false
 	var finished_stroke := facet_latched
 	facet_latched = false
+	if was_holding and model.stage == 2 and not model.failed and not fast_mode:
+		var progress: float = model.cut[model.facet]
+		if progress > stroke_start:
+			if progress < green_start():
+				var key := "%d:%d" % [model.generation, model.facet]
+				retry_by_facet[key] = int(retry_by_facet.get(key, 0)) + 1
+				notify("再慢慢靠近绿色，判定区变宽了一点。" if panpan_sleeping else "潘潘：轻点！差点就切过了！再慢慢靠近绿色。")
+			else:
+				var grade := "S"
+				var score := 90
+				if progress <= 1.0:
+					var within: float = clampf((progress-green_start())/maxf(0.001,1.0-green_start()),0.0,1.0)
+					score = 90 + int(round(10.0*smoothstep(0.0,0.65,within)))
+					model.work((1.0-progress)/(0.64*model.pressure))
+					if model.failed:
+						notify(model.failure_reason)
+						refresh()
+						return
+				else:
+					var over := progress-1.0
+					grade = "A" if over <= 0.05 else ("B" if over <= 0.12 else "C")
+					score = 85 if grade == "A" else (75 if grade == "B" else 60)
+					model.cut_depths[model.facet] += (progress-1.0) * maxf(0.0, model.starts[model.facet]-model.tasks[model.facet].d)
+					model.quality = model.geometry_quality()
+				model.facet_scores[model.facet] = score
+				model.facet_grades[model.facet] = grade
+				score_popup = "%s · %d" % [grade,score]
+				score_popup_time = 1.6
+				notify("%s · %d 分！" % [grade,score] + (" 切过的材料不会回来。" if progress > 1.0 else ("" if panpan_sleeping else " 潘潘：好亮！")))
+				model.cut[model.facet] = 1.0
+				experience += 1 + facet_difficulty()
+				save_progression()
+				retry_by_facet.erase("%d:%d" % [model.generation, model.facet])
+				finished_stroke = true
+				sound.play_impact()
 	if finished_stroke and not model.failed:
 		var values: Array[float] = model.cut if model.stage == 2 else model.polish
 		for i in range(model.active_ids().size()):
@@ -450,8 +570,53 @@ func stop_work() -> void:
 			if values[model.facet] < 1.0: break
 	if not buttons.is_empty(): refresh()
 
+func skill_level() -> int:
+	return 1 + int(experience / 100)
+
+func facet_difficulty() -> int:
+	return model.facet_difficulty(model.facet)
+
+func green_start() -> float:
+	var key := "%d:%d" % [model.generation, model.facet]
+	return maxf(0.60, 0.83 + 0.035 * (facet_difficulty()-1) - 0.06 * int(retry_by_facet.get(key, 0)))
+
+func cutting_speed(progress: float) -> float:
+	return 1.0 - 0.55 * smoothstep(0.45,green_start(),progress)
+
+func apply_skill_error() -> void:
+	var chance := clampf(0.24 + 0.09 * (facet_difficulty()-1) - 0.025 * (skill_level()-1), 0.02, 0.5)
+	if randf() < chance:
+		var magnitude := maxf(0.3, 2.8 - 0.18 * (skill_level()-1))
+		model.angle = clampf(model.angle + randf_range(-magnitude, magnitude), 0.0, 90.0)
+
+func load_progression() -> void:
+	var config := ConfigFile.new()
+	if config.load(progression_path) == OK:
+		experience = maxi(0, int(config.get_value("player", "experience", 0)))
+		panpan_sleeping = bool(config.get_value("panpan", "sleeping", false))
+
+func save_progression() -> void:
+	var config := ConfigFile.new()
+	config.set_value("player", "experience", experience)
+	config.set_value("panpan", "sleeping", panpan_sleeping)
+	if config.save(progression_path) != OK: notify("进度暂时无法保存，请检查用户目录。")
+
+func use_magic() -> void:
+	if fast_mode or active_workshop != null: return
+	if panpan_sleeping:
+		notify("潘潘睡着啦，做完一颗全 A 或更好的宝石叫醒她吧。")
+	elif model.magic_repair():
+		panpan_sleeping = true
+		repair_generation = model.generation
+		save_progression()
+		notify("潘潘：长回来！……呼，潘潘要睡觉了。")
+	else:
+		notify("潘潘：这颗没有需要我修的裂口呀。")
+	refresh()
+
 func select_gem(id: int) -> void:
-	model.reset(id)
+	model.reset(id,13 if id==10 else (3 if id in [11,12] else -1))
+	demo_run = false
 	notify("已挑选 " + model.GEMS[id].name + "。先看看原石，再开始加工。")
 	refresh()
 
@@ -464,6 +629,7 @@ func on_primary() -> void:
 	if debug_mode and model.stage==0: model.advance()
 	if model.failed:
 		model.reset(model.gem_id)
+		demo_run = false
 		world.inspection = false
 		notify("重新领料。损失的原石不能恢复。")
 	elif model.stage == 4:
@@ -475,13 +641,19 @@ func on_primary() -> void:
 		elif model.stage == 2: notify("角度和进给都会改变真实形状；已磨掉的材料不会恢复。")
 		elif model.stage == 3: notify("每个刻面只需抛光一次，完成后直接进入下一工序。")
 		elif model.stage == 4:
+			var woke_panpan: bool = panpan_sleeping and not demo_run and model.generation != repair_generation and model.all_a_or_better()
+			if woke_panpan:
+				panpan_sleeping = false
+				save_progression()
+				notify("潘潘醒啦！这颗宝石的每个面都是 A 或更好。")
 			exhibition.open()
 			sound.play_complete()
 			world.auto_rotate = true
 			world.inspection = false
 			world.yaw = 0.35
 			world.tilt = -0.85
-			notify("展台使用刚才切出的实体追踪光线，形状误差会保留。")
+			if not woke_panpan:
+				notify("展台使用刚才切出的实体追踪光线，形状误差会保留。")
 	refresh()
 
 func notify(message: String) -> void:
@@ -498,13 +670,14 @@ func refresh() -> void:
 	for i in range(model.GEMS.size()):
 		buttons["gem%d"%i].visible = s == 0
 		var gem = model.GEMS[i]
-		buttons["gem%d"%i].text = ("●  " if i == model.gem_id else "○  ")+gem.name+"\n     %.2f ct / 原石"%gem.rough
+		buttons["gem%d"%i].text = ("●  " if i == model.gem_id else "○  ")+gem.name+"\n     估价 %d · %.2f ct"%[model.ROUGH_PRICES[i],gem.rough]
 	for i in range(3):
 		buttons["light%d"%i].visible = s == 4
 		buttons["light%d"%i].modulate = Color.WHITE if world.light_mode == i else Color("a8b9a9")
 	for i in range(model.SHAPES.size()):
 		buttons["shape%d"%i].visible = s == 0
-		buttons["shape%d"%i].text = ("●  " if model.shape_id == i else "○  ")+model.SHAPES[i]
+		var difficulty := 4 if i==4 else (1 if i == 10 else (2 if i in [0,8,11,12] else 3))
+		buttons["shape%d"%i].text = ("●  " if model.shape_id == i else "○  ")+model.SHAPES[i]+" "+"★".repeat(difficulty)
 	for id in ["coarse","fine","finish","prev","next","water","work","inspect"]:
 		buttons[id].visible = machining
 	for pair in [["coarse",0],["fine",1],["finish",2]]:
@@ -512,6 +685,8 @@ func refresh() -> void:
 	buttons.finish.text = "03  终抛 · "+("氧化铈盘" if model.gem_id == 1 else "金刚石抛光盘")
 	buttons.finish.visible = false
 	buttons.pressure.visible = machining
+	buttons.prev.disabled = holding
+	buttons.next.disabled = holding
 	buttons.axis.visible = machining or s == 0
 	buttons.axis.position.y = 441 if s == 0 else 280
 	buttons.axis.disabled = holding
@@ -524,8 +699,16 @@ func refresh() -> void:
 	buttons.style.text = "风格 · "+("真实" if world.real_mode else "像素")
 	buttons.enlarge.visible = s == 4
 	buttons.bounces.text = "光路 · %d 次" % world.max_bounces
-	buttons.fast.text = "F8  停止快速加工" if fast_mode else "F8  快速加工 · 约 30 倍"
-	buttons.fast.disabled = model.failed or s == 4
+	buttons.fast.text = "F8 停止快进" if fast_mode and not demo_random else "F8 完美快进"
+	buttons.random_demo.text = "F9 停止快进" if fast_mode and demo_random else "F9 随机快进"
+	buttons.fast.disabled = false
+	buttons.random_demo.disabled = false
+	buttons.magic.visible = s in [2,3] or model.failed
+	buttons.magic.text = "潘潘睡着了 · 全 A 唤醒" if panpan_sleeping else "潘潘的魔法 · 修复"
+	if is_instance_valid(guide) and is_instance_valid(guide.portrait):
+		var sleeping := panpan_sleeping
+		guide.portrait.modulate = Color("a5aaa0") if sleeping else Color.WHITE
+		guide.get_node("Caption").text = "潘潘睡着啦 · 全 A 唤醒" if sleeping else "潘潘 · 点击认识一下"
 	buttons.bgm.text = "音乐 · " + ("开" if bgm_enabled else "关")
 	angle_slider.visible = machining
 	angle_slider.editable = not holding and (model.cut[model.facet] == 0.0 or s == 3)
@@ -660,12 +843,12 @@ func _draw() -> void:
 	draw_left()
 	draw_right()
 	draw_bottom()
-	text_at("石间小铺  /  潘潘和你的宝石工坊 0.13.0", 28, 710, 10, Color("e6efe4"))
-	text_at("F8 快速加工 · 点击潘潘查看说明", 862, 710, 10, Color("e6efe4"))
+	text_at("石间小铺  /  潘潘和你的宝石工坊 0.14.0", 28, 710, 10, Color("e6efe4"))
+	text_at("F8 完美快进 · F9 随机快进", 862, 710, 10, Color("e6efe4"))
 
 func draw_left() -> void:
 	var gem = model.GEMS[model.gem_id]
-	text_at("原石匣" if model.stage == 0 else "加工记录",44,193,17,WHITE,true)
+	text_at("原石匣 · 估价点数" if model.stage == 0 else "加工记录",44,193,17,WHITE,true)
 	line(44,204,190)
 	if model.stage == 0:
 		line(44,478,190)
@@ -702,12 +885,12 @@ func draw_right() -> void:
 	if model.failed:
 		text_at("原石已报废",866,249,21,Color("ed9e87"),true)
 		text_at("裂纹贯穿剩余晶体。",866,284,13,MUTED)
-		text_at("冷却不能愈合已经形成的裂口。",866,315,11,MUTED)
-		text_at("本次重量与工序全部损失。",866,344,12,MUTED)
+		text_at("可以请潘潘用魔法修复一次。",866,315,11,MUTED)
+		text_at("也可以重新领取一块原石。",866,344,12,MUTED)
 		return
 	if s == 0:
-		text_at("%d 个加工面"%model.tasks.size(),866,457,13,GOLD)
-		text_at("心箭试验型尚未验证图样。" if model.shape_id==4 else "按 F8 快速加工并比较光彩。",866,525,11,MINT)
+		text_at("%d 面 · 难度 %s"%[model.tasks.size(),"★".repeat(model.cut_difficulty())],866,457,13,GOLD)
+		text_at("心箭试验型尚未验证图样。" if model.shape_id==4 else "F8 完美快进 / F9 随机快进",866,525,11,MINT)
 	elif s == 1:
 		text_at("翻到爷爷画工具的那一页。",866,255,14,GOLD)
 		text_at("保持粘杆与原石的轴线。",866,292,12,MUTED)
@@ -718,7 +901,7 @@ func draw_right() -> void:
 		text_at("进给偏置 %+0.1f · 正值切深"%model.depth_offset,866,378,11,MUTED)
 		text_at("%02d / %02d"%[model.active_ids().find(model.facet)+1,model.active_ids().size()],930,423,15,MINT,true)
 		text_at(("温度 %.0f°C / 应力 %.0f"%[model.temperature,model.thermal_damage]) if debug_mode else ("温度偏高，先歇一会儿。" if model.thermal_damage>0 else "滴水开着，慢慢磨。"),866,500,10,GOLD if model.thermal_damage>0 else MUTED)
-		text_at("%s / 八方 %d"%[model.tasks[model.facet].name,int(model.tasks[model.facet].index/12)+1],958,445,10,MUTED)
+		text_at("本面难度 %s · 技艺 Lv.%d"%["★".repeat(facet_difficulty()),skill_level()],44,570,11,MUTED)
 	elif s == 4:
 		text_at("折射率 %.3f"%model.GEMS[model.gem_id].ri if debug_mode else "慢慢转一转，看看里面。",866,340,12,MUTED)
 		text_at("实际切形" if debug_mode else "",1025,340,12,MINT)
@@ -736,14 +919,23 @@ func draw_bottom() -> void:
 		var values: Array[float] = model.cut if s == 2 else model.polish
 		var ids: Array = model.active_ids()
 		text_at("%s · %s · %02d / %02d"%["亭部+腰围" if model.section==0 else "冠部+台面","切面" if s==2 else "抛光",model.count_complete(values),ids.size()],397,619,11,MUTED)
-		for i in range(ids.size()):
-			var bar_width: float = minf(25.0,400.0/ids.size())
-			var x: float = 398+i*bar_width
-			draw_rect(Rect2(x,634,bar_width-3,10),Color("b9cbb9"))
-			draw_rect(Rect2(x,634,(bar_width-3)*values[ids[i]],10),MINT)
-			if ids[i] == model.facet: draw_rect(Rect2(x,651,bar_width-3,2),GOLD)
+		if s == 2:
+			var width := 400.0
+			var maximum := 1.25
+			draw_rect(Rect2(398,633,width,15),Color("d4c3ae"))
+			draw_rect(Rect2(398+width*green_start()/maximum,633,width*(1.0-green_start())/maximum,15),Color("8ebd8c"))
+			draw_rect(Rect2(398+width*1.0/maximum,633,width*0.25/maximum,15),Color("d79d8e"))
+			draw_rect(Rect2(398+width*minf(values[model.facet],maximum)/maximum-2,628,4,25),Color("3d5148"))
+			text_at("按住切削，绿色松手 · 技艺 Lv.%d / %d 经验"%[skill_level(),experience],398,665,11,MUTED)
+		else:
+			for i in range(ids.size()):
+				var bar_width: float = minf(25.0,400.0/ids.size())
+				var x: float = 398+i*bar_width
+				draw_rect(Rect2(x,634,bar_width-3,10),Color("b9cbb9"))
+				draw_rect(Rect2(x,634,(bar_width-3)*values[ids[i]],10),MINT)
+				if ids[i] == model.facet: draw_rect(Rect2(x,651,bar_width-3,2),GOLD)
 	else:
-		text_at("%.2f ct · 今天的工坊手账"%model.carats(),397,640,12,MUTED)
+		text_at(("综合 %d 分 · %.2f ct"%[model.overall_score(),model.carats()]) if s == 4 else ("%.2f ct · 今天的工坊手账"%model.carats()),397,640,12,MUTED)
 	var status: String = toast if toast_time>0 else ("材料一旦移除不可恢复；抛光不会修正切歪的形状。" if s in [2,3] else "拖动中央可观察原石；先加工几何体，再看光如何走。")
 	text_at(model.failure_reason if model.failed else status,46,674,11,GOLD)
 

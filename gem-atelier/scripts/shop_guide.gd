@@ -56,6 +56,7 @@ func _ready() -> void:
 	portrait.mouse_default_cursor_shape=Control.CURSOR_POINTING_HAND
 	portrait.gui_input.connect(func(e):
 		if e is InputEventMouseButton and e.pressed and e.button_index==MOUSE_BUTTON_LEFT:
+			if host.panpan_sleeping: return
 			if greeting: open_page()
 			elif not busy: host.open_character())
 	add_child(portrait)

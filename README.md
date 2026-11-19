@@ -3,44 +3,52 @@
 挑一块原石，慢慢切出自己的宝石。做完换盏灯，转一转，再把它放进绒布收藏室。
 Choose a rough stone, cut and polish it, turn it under different lights, then keep it in your velvet-lined collection.
 
-**v0.13.0 Windows 体验版：10 种原料 × 10 种切工。**
-**v0.13.0 Windows preview: 10 materials × 10 cuts.**
+**v0.14.0 Windows 体验版：13 种原料 × 14 种切工。**
+**v0.14.0 Windows preview: 13 materials × 14 cuts.**
 
 [下载游戏 / Download](https://github.com/TimrayZ/gem-atelier/releases/latest) · [宣传素材 / Media kit](https://github.com/TimrayZ/gem-atelier/releases/download/v0.11.0/GemAtelier-v0.11.0-MediaKit.zip)
 
-![像素钻石展台 / Pixel diamond exhibition](docs/images/showcase-v013.png)
+![紫黄晶展示 / Ametrine](docs/images/showcase-v014.png)
 
 ## 开始游玩 / Play
 
-1. 下载 **GemAtelier-v0.13.0-Windows-x64.zip**，完整解压，双击 **GemAtelier.exe**。无需安装 Godot，无需联网。
+1. 下载 **GemAtelier-v0.14.0-Windows-x64.zip**，完整解压，双击 **GemAtelier.exe**。无需安装 Godot，无需联网。
 2. 左侧选择原料，右侧选择切工；按右下角按钮逐步加工，或按 **F8** 自动完成后续工序。
 3. 成品拖动旋转、滚轮缩放，按 **1 / 2 / 3** 比较日光、白炽灯与中性光。
 4. 喜欢就收入收藏室。点击收藏中的宝石，可随时重新旋转、换光查看。
 
 Download the Windows ZIP, extract everything, and run **GemAtelier.exe**. Choose a material and cut, follow the work button or press **F8** for automatic processing. Drag to rotate, scroll to zoom, use **1/2/3** for lights, and save finished gems to reopen from the collection.
 
-Windows 10/11 x64，显卡需支持 OpenGL 3.3。卡顿可把“反射上限”调到 6；像素与真实通道都提供 6/12/20 档。尚未在多种电脑配置上验证。
-Requires 64-bit Windows 10/11 and OpenGL 3.3. Both render channels expose 6/12/20 reflection limits; try 6 for performance. Compatibility across other hardware remains unverified.
+Windows 10/11 x64，显卡需支持 OpenGL 3.3。卡顿可把“反射上限”调到 3；像素与真实通道提供 3/6/12/20 档。尚未在多种电脑配置上验证。
+Requires 64-bit Windows 10/11 and OpenGL 3.3. Both styles expose 3/6/12/20 reflection limits; try 3 for performance. Compatibility across other hardware remains unverified.
 
-![潘潘与工坊 / Panpan and the workshop](docs/images/workshop-v013.png)
+![潘潘与工坊 / Panpan and the workshop](docs/images/workshop-v014.png)
+
+## 切削与成长 / Cutting and progression
+
+蓝宝石使用较浅的游戏拟合吸收谱，反射上限新增 3 次选项，默认仍为 6 次。按住切削并在绿色区间松手；提前松手可以继续，过切会保留在实际形状中。手工完成刻面获得技艺经验；F8 完美快进剩余工序，F9 根据技艺等级随机快进；两者保留已经切出的形状和误差，不获得经验。潘潘可以修复最近一次崩角或裂损，使用后睡着，亲手完成另一颗每面 A 或以上的宝石才能醒来。绿色区间均为 S，并显示 90–100 完美度；过切按程度给 A、B 或 C。现在共有 14 种切工，原料估价为虚构游戏点数。
+
+Sapphire uses a lighter illustrative absorption spectrum and a 3-bounce option is available alongside the default 6. Hold to cut and release in the green zone. Early releases can continue; overcuts affect the actual shape. Manual work earns skill XP. F8 completes remaining work perfectly; F9 fast-forwards with level-dependent mistakes. Both preserve existing cuts and grant no XP. After repairing the latest chip or fracture, Panpan sleeps until the player manually finishes another gem with every facet graded A or better. Green releases always earn S and a 90–100 perfection score. There are 14 cuts; rough prices are fictional game points.
 
 ## 工坊 / Workshop
 
-- **10 种原料**：亚历山大变石、紫水晶、蓝宝石、钻石、透明正长石、合成莫桑石、祖母绿、粉色尖晶石、金色托帕石、红宝石。
-- **10 种切工**：八角单翻、椭圆、八重对称、长方阶梯、圆形明亮（心箭试验）、枕形、梨形、马眼、切角三角、六边阶梯。圆形明亮尚未验证达到八心八箭。
+- **13 种原料**：亚历山大变石、紫水晶、蓝宝石、钻石、透明正长石、合成莫桑石、祖母绿、粉色尖晶石、金色托帕石、红宝石、白绿翡翠、紫黄晶和双色碧玺。
+- **14 种切工**：包括八面体、简易方形、长方阶梯、椭圆、蛋面多面近似及圆形明亮（心箭试验）。后者列为四星，尚未验证达到八心八箭。
 - 原生晶形与磨圆料可选；切削逐面移除实际体积，切歪、崩角也会保留在作品中。每面一次抛光，支持滴水冷却与压力选择。
 - 默认像素材质按前后刻面归并光影，采用柔光和较大色块；随转动显示反光与火彩。钻石随照明呈色，莫桑石使用更高色散，变石在日光和白炽灯下改变颜色。
 - 大展台与独立绒布收藏室；按 **R** 切换像素／真实通道，两者均为纯色背景。
 - 左侧百科收录组成、典型晶形、硬度、韧性、解理、折射率与拟合吸收谱。
 - 支持导入 **GemCAD .asc / Gem Cut Studio .gcs** 常见平面刻面子集。压缩包“示例切工”包含两份等价的原创 CC0 练习设计。
 
-Ten materials include alexandrite, amethyst, sapphire, diamond, orthoclase, synthetic moissanite, emerald, pink spinel, golden topaz and ruby. Ten cuts include octagonal, oval, eightfold, rectangular step, experimental round brilliant, cushion, pear, marquise, clipped triangle and hexagonal step. Actual progressive solid cutting preserves mistakes and chips. Features include one polishing pass, cooling and pressure controls, a mineral encyclopedia, a large pixel/spectral viewer, saved-shape collections, and ASC/GCS import with original CC0 examples. The experimental brilliant is not verified as hearts and arrows.
+Thirteen materials include white-green jadeite, ametrine and bicolour tourmaline. Fourteen cuts include an approximate cabochon and the four-star experimental round brilliant. Actual progressive solid cutting preserves mistakes and chips. Features include one polishing pass, cooling and pressure controls, a mineral encyclopedia, a large pixel/spectral viewer, saved-shape collections, and ASC/GCS import with original CC0 examples. The experimental brilliant is not verified as hearts and arrows.
+
+![白绿翡翠蛋面 / White-green jadeite cabochon](docs/images/jade-v014.png)
 
 ![收藏室 / Collection room](docs/images/collection-v013.png)
 
 | 操作 / Control | 功能 / Action |
 | --- | --- |
-| F8 | 开始／停止快速加工 / Start or stop fast processing |
+| F8 / F9 | 完美／随机快进剩余工序，保留已有误差 / Perfect or random fast-forward, preserving existing mistakes |
 | 空格或按住加工按钮 / Space or hold work | 加工当前面 / Work on current facet |
 | ← / → | 切换加工面 / Select facet |
 | 拖动 / Drag | 旋转观察 / Rotate |
@@ -49,6 +57,10 @@ Ten materials include alexandrite, amethyst, sapphire, diamond, orthoclase, synt
 | H / J | 冠部／亭部正视 / Crown or pavilion view |
 | R（大展台 / large viewer） | 像素／真实通道 / Pixel or spectral channel |
 | Esc | 返回或关闭页面 / Back or close |
+
+白绿翡翠以多面近似蛋面和柔和半透着色展示；紫黄晶与双色碧玺默认推荐长方阶梯，色带随晶体旋转。光源切换约 0.65 秒平滑过渡。[材料与光源实现说明](docs/分区宝石与光源渐变.md)。
+
+White-green jadeite uses an approximate faceted cabochon and soft translucent shading. Ametrine and bicolour tourmaline default to a step cut; colour zones rotate with the stone. Light changes crossfade over about 0.65 seconds.
 
 ## 潘潘与小铺 / Panpan and the shop
 
@@ -69,19 +81,19 @@ Collect finished pieces to save the imported recipe and actual geometry. Saves a
 
 ## 模拟范围 / Simulation limits
 
-两个通道均沿实际凸实体追踪光路，包含 Snell 折射、Fresnel 分配、全反射、色散与 Beer–Lambert 路径吸收。像素通道使用 12 波段与按前后刻面归并的采样，并量化明暗／颜色，真实通道使用 20 波段。呈色由光源光谱与拟合吸收共同决定；更高色散的火彩仍依赖切工、观察角与光源。
-Both channels trace the actual convex solid using Snell refraction, Fresnel splitting, total internal reflection, dispersion and Beer–Lambert path absorption. Pixel mode uses 12 spectral bands, facet-grouped sampling, stylized lights and quantized values/colours; detailed mode uses 20 bands. Source spectra and fitted absorption determine colour; visible fire depends on cut, view and illumination.
+除翡翠使用专门的半透视觉近似外，两个通道均沿实际凸实体追踪光路，包含 Snell 折射、Fresnel 分配、全反射、色散与 Beer–Lambert 路径吸收。像素通道使用 12 波段与按前后刻面归并的采样，并量化明暗／颜色，真实通道使用 20 波段。呈色由光源光谱与拟合吸收共同决定；两种风格对基准吸收谱使用不同的美术倍率；更高色散的火彩仍依赖切工、观察角与光源。
+Except for jadeite’s dedicated translucent approximation, both channels trace the actual convex solid using Snell refraction, Fresnel splitting, total internal reflection, dispersion and Beer–Lambert path absorption. Pixel mode uses 12 spectral bands, facet-grouped sampling, stylized lights and quantized values/colours; detailed mode uses 20 bands. Source spectra and fitted absorption determine colour; each style can apply a different artistic absorption multiplier; visible fire depends on cut, view and illumination.
 
-吸收谱、晶向风险与温度阈值是游戏近似，未完整实现偏振、双折射、多色性、间接照明与焦散。细小混叠或转动闪烁仍可能出现。原石是简化单晶；缺角通过凸截面移除体积，不模拟凹入贝壳状破口。参数不用于现实加工指导。
-Spectra, cleavage risk and heat thresholds are gameplay approximations. Full polarization, birefringence, pleochroism, indirect illumination and caustics remain incomplete. Fine aliasing or shimmer may remain. Roughs are simplified single crystals; chips remove volume with convex planes rather than concave fractures. Parameters are not manufacturing guidance.
+吸收谱、晶向风险与温度阈值是游戏近似，未完整实现偏振、双折射、多色性、间接照明与焦散；翡翠的多晶散射和蛋面是视觉近似。细小混叠或转动闪烁仍可能出现。原石使用简化凸体；缺角通过凸截面移除体积，不模拟凹入贝壳状破口。参数不用于现实加工指导。
+Spectra, cleavage risk and heat thresholds are gameplay approximations. Full polarization, birefringence, pleochroism, indirect illumination and caustics remain incomplete; jadeite scattering and its cabochon are visual approximations. Fine aliasing or shimmer may remain. Roughs use simplified convex geometry; chips remove volume with convex planes rather than concave fractures. Parameters are not manufacturing guidance.
 
 ## 源码与验证 / Source and validation
 
 用 **Godot 4.7.2 Standard** 打开 `gem-atelier/project.godot`，导入后按 F5。Compatibility 渲染器，无需 .NET。Windows 导出需要同版本官方模板。
 Open `gem-atelier/project.godot` in Godot 4.7.2 Standard, allow imports and press F5. Compatibility rendering requires no .NET. Export needs matching official templates.
 
-全部 100 种材料／切工组合通过；5296 项模型检查零失败。导入等价几何、加工、保存恢复，以及收藏重看、缺角和进度恢复均有回归检查。测试入口：`test_workshop.gd`、`test_shapes.gd`、`test_cut_import.gd`、`test_first_release.gd`、`test_collection.gd`。运行例：`godot --headless --path gem-atelier --script res://tests/test_workshop.gd`；图形测试需要 OpenGL。
-All 100 material/cut combinations and 5296 model checks pass. Regression scripts cover imported geometry, processing, persistence, collection reopening, chips and workshop restoration. Run the command above for model tests; graphical tests require OpenGL.
+全部 182 种材料／切工组合通过；另有光源过渡、色带与收藏恢复检查。导入等价几何、加工、保存恢复，以及收藏重看、缺角和进度恢复均有回归检查。测试入口：`test_workshop.gd`、`test_shapes.gd`、`test_cut_import.gd`、`test_first_release.gd`、`test_collection.gd`。运行例：`godot --headless --path gem-atelier --script res://tests/test_workshop.gd`；图形测试需要 OpenGL。
+All 182 material/cut combinations pass, alongside light-transition, colour-zoning and collection checks. Regression scripts cover imported geometry, processing, persistence, collection reopening, chips and workshop restoration. Run the command above for model tests; graphical tests require OpenGL.
 
 ## 署名与许可 / Credits and licenses
 

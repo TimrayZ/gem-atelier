@@ -58,9 +58,9 @@ func _ready() -> void:
 	make_button("spin","",664,122,func(): host.world.auto_rotate=not host.world.auto_rotate)
 	make_button("save","收藏作品",796,146,func(): host.on_primary())
 	make_button("back","",952,140,go_back)
-	make_button("quality","",952,140,func(): host.world.max_bounces={6:12,12:20,20:6}.get(host.world.max_bounces,12))
+	make_button("quality","",952,140,func(): host.world.max_bounces={3:6,6:12,12:20,20:3}.get(host.world.max_bounces,6))
 	controls.quality.position.y=29
-	controls.quality.tooltip_text="两种通道都使用此上限；6 次较快，12/20 次保留更多内部光路。"
+	controls.quality.tooltip_text="两种通道都使用此上限；3/6 次更简洁，12/20 次保留更多内部光路。"
 	hide()
 
 func make_button(id: String, text: String, x: int, width: int, callback: Callable) -> void:
@@ -126,7 +126,8 @@ func update_view() -> void:
 	var m=host.model
 	var w=host.world
 	title.text="%s  /  %s · %.2f ct"%[m.GEMS[m.gem_id].name,m.cut_name(),m.carats()]
-	subtitle.text="%s · 拖动旋转 · 滚轮缩放 · 1/2/3 换光 · R 换风格 · 缺角 %d"%[["日光","白炽灯","中性光"][w.light_mode],m.chips.size()]
+	var score_text := " · 综合 %d 分"%m.overall_score() if m.facet_scores.any(func(score): return score >= 0) else ""
+	subtitle.text="%s · 拖动旋转 · 滚轮缩放 · 1/2/3 换光 · R 换风格 · 缺角 %d%s"%[["日光","白炽灯","中性光"][w.light_mode],m.chips.size(),score_text]
 	for i in range(3): controls[["day","warm","neutral"][i]].modulate=Color.WHITE if w.light_mode==i else Color("baaa8b")
 	controls.quality.visible=true
 	controls.quality.text="反射上限 · %d"%w.max_bounces
@@ -135,7 +136,7 @@ func update_view() -> void:
 	controls.save.text="已收藏 ✓" if m.saved else "收藏作品"
 	controls.save.disabled=m.saved
 	controls.back.text="返回收藏室" if host.active_workshop!=null else "返回工坊"
-	var key: Array=[m.generation,m.gem_id,m.revision,w.yaw,w.tilt,w.light_mode,w.real_mode,w.zoom,w.max_bounces,w.inclusion_enabled,m.thermal_damage]
+	var key: Array=[m.generation,m.gem_id,m.revision,w.yaw,w.tilt,w.light_mode,w.light_weights,w.real_mode,w.zoom,w.max_bounces,w.inclusion_enabled,m.thermal_damage]
 	if key==cached_key: return
 	cached_key=key
 	var bounding_radius := 0.0
@@ -154,7 +155,8 @@ func update_view() -> void:
 	backdrop_material.set_shader_parameter("floor_width",clampf(perspective_radius*scale/425.0,0.08,0.4))
 	backdrop_material.set_shader_parameter("receiver_y",bounding_radius+24.0/maxf(scale,0.01))
 	backdrop_material.set_shader_parameter("illuminant",w.light_mode)
-	var tint: Color = m.GEMS[m.gem_id][["day","warm","neutral"][w.light_mode]]
+	backdrop_material.set_shader_parameter("light_weights",w.light_weights)
+	var tint: Color = m.GEMS[m.gem_id].day*w.light_weights.x + m.GEMS[m.gem_id].warm*w.light_weights.y + m.GEMS[m.gem_id].neutral*w.light_weights.z
 	if m.gem_id in [3,5]: tint=Color.WHITE
 	backdrop_material.set_shader_parameter("material_tint",Vector3(tint.r,tint.g,tint.b))
 	backdrop_material.set_shader_parameter("pixel_style",not w.real_mode)
@@ -164,7 +166,7 @@ func update_view() -> void:
 	viewport.size=Vector2i(1064,518) if w.real_mode else Vector2i(532,259)
 	optical.size=Vector2(viewport.size)
 	var logical:=Vector2(1064.0/518.0*207.0,207)
-	Renderer.configure(gem_material,m,m.body,w.yaw,w.tilt,w.light_mode,w.real_mode,logical,scale,logical/Vector2(viewport.size),w.max_bounces)
+	Renderer.configure(gem_material,m,m.body,w.yaw,w.tilt,w.light_mode,w.real_mode,logical,scale,logical/Vector2(viewport.size),w.max_bounces,w.light_weights)
 	gem_material.set_shader_parameter("center",Vector2(logical.x*0.5,logical.y*0.44))
 	if w.real_mode:
 		var inclusions:=PackedVector4Array()
@@ -173,6 +175,6 @@ func update_view() -> void:
 			inclusions.append(Vector4(v.x,v.y,v.z,0.55 if m.gem_id==3 else 1.2))
 		gem_material.set_shader_parameter("inclusions",inclusions)
 		gem_material.set_shader_parameter("inclusion_count",(1 if m.gem_id==3 else 3) if w.inclusion_enabled else 0)
-		gem_material.set_shader_parameter("scattering_strength",0.00003+m.thermal_damage*0.00002)
+		gem_material.set_shader_parameter("scattering_strength",(0.004 if m.gem_id==10 else 0.00003)+m.thermal_damage*0.00002)
 		gem_material.set_shader_parameter("surface_roughness",0.004+minf(0.06,m.thermal_damage*0.0015))
 	viewport.render_target_update_mode=SubViewport.UPDATE_ONCE

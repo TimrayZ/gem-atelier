@@ -4,6 +4,7 @@ render_mode unshaded;
 uniform vec4 background_color : source_color = vec4(0.90, 0.90, 0.88, 1.0);
 uniform float rotation_angle = 0.0;
 uniform int illuminant = 0;
+uniform vec3 light_weights = vec3(1.0,0.0,0.0);
 uniform bool pixel_style = true;
 uniform vec3 material_tint = vec3(1.0);
 uniform float floor_y = 0.87;
@@ -33,7 +34,7 @@ float silhouette(vec3 origin, vec3 ray){
 void fragment(){
     vec2 uv=UV;
     if(pixel_style)uv=(floor(uv*vec2(532.0,259.0))+0.5)/vec2(532.0,259.0);
-    float offset=illuminant==1?0.035:-0.025;
+    float offset=light_weights.y*0.035-(light_weights.x+light_weights.z)*0.025;
     vec2 q=(uv-vec2(0.5+offset,floor_y))/vec2(floor_width,0.11);
 
     float radius=length(q);

@@ -2,7 +2,7 @@ extends SceneTree
 var app
 func _initialize() -> void: call_deferred("run")
 func snap(name: String) -> Image:
- app.world._process(0.0)
+ app.world._process(1.0)
  if app.exhibition.visible: app.exhibition.update_view()
  await process_frame
  await RenderingServer.frame_post_draw
@@ -42,8 +42,23 @@ func run() -> void:
  app=load("res://main.tscn").instantiate();root.add_child(app)
  app.model.collection.clear();app.model.save_path="user://test_launch_v011.json"
  app.set_debug(false)
- assert(app.model.GEMS.size()==10 and app.model.SHAPES.size()==10)
- for id in range(10):
+ assert(app.model.GEMS.size()>=13 and app.model.SHAPES.size()>=14)
+ var renderer=preload("res://scripts/gem_renderer.gd")
+ var test_material=ShaderMaterial.new()
+ app.model.reset(2,0)
+ var base_bands=app.model.Data.bands(2)
+ renderer.configure(test_material,app.model,app.model.body,0.0,0.0,0,false,Vector2(100,100),1.0,Vector2.ONE,6)
+ var pixel_bands: PackedFloat32Array=test_material.get_shader_parameter("absorption_bands")
+ renderer.configure(test_material,app.model,app.model.body,0.0,0.0,0,true,Vector2(100,100),1.0,Vector2.ONE,6)
+ var real_bands: PackedFloat32Array=test_material.get_shader_parameter("absorption_bands")
+ assert(real_bands[12]>pixel_bands[12] and is_equal_approx(pixel_bands[12],base_bands[12]),"Each style can use a different absorption strength without changing the base spectrum")
+ app.model.reset(3,0)
+ renderer.configure(test_material,app.model,app.model.body,0.0,0.0,0,false,Vector2(100,100),1.0,Vector2.ONE,6)
+ var diamond_pixel: PackedFloat32Array=test_material.get_shader_parameter("absorption_bands")
+ renderer.configure(test_material,app.model,app.model.body,0.0,0.0,0,true,Vector2(100,100),1.0,Vector2.ONE,6)
+ var diamond_real: PackedFloat32Array=test_material.get_shader_parameter("absorption_bands")
+ assert(is_equal_approx(diamond_pixel[12],diamond_real[12]),"Colourless diamond stays neutral in both styles")
+ for id in range(app.model.GEMS.size()):
   app.exhibition.close();app.model.reset(id,0);app.refresh()
   await snap("rough-%d"%id)
  app.open_character()
@@ -75,6 +90,12 @@ func run() -> void:
  var high=await snap("moissanite-20")
  assert(low.get_data()!=high.get_data(),"Visible reflection choice affects pixel transport")
  assert(int(app.exhibition.gem_material.get_shader_parameter("max_bounces"))==20)
+ app.exhibition.controls.quality.pressed.emit()
+ assert(app.world.max_bounces==3,"Reflection control exposes the simpler 3-bounce mode")
+ await snap("moissanite-3")
+ assert(int(app.exhibition.gem_material.get_shader_parameter("max_bounces"))==3)
+ app.exhibition.controls.quality.pressed.emit()
+ assert(app.world.max_bounces==6,"Reflection control returns to the default")
  for pair in [[0,1],[6,3],[7,5],[8,9],[9,8],[5,4]]:
   app.exhibition.close();await complete(pair[0],pair[1])
   app.world.light_mode=0

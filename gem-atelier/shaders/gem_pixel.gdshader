@@ -16,6 +16,11 @@ uniform int illuminant = 0;
 // Twenty visible-wavelength bands: fixed material absorption under changing SPD.
 uniform int material_id = 0;
 uniform float absorption_bands[20];
+uniform float absorption_bands_alt[20];
+uniform bool zoned = false;
+uniform vec3 zone_axis = vec3(0.0,1.0,0.0);
+uniform float zone_width = 20.0;
+uniform vec3 light_weights = vec3(1.0,0.0,0.0);
 uniform int max_bounces = 12;
 uniform vec2 pixel_footprint = vec2(0.5);
 uniform vec4 inclusions[3];
@@ -28,10 +33,15 @@ vec3 observer(float l) {
 	float z = 1.217*gaussian(l,437.0,l<437.0?11.8:36.0)+0.681*gaussian(l,459.0,l<459.0?26.0:13.8);
 	return max(vec3(x,y,z),vec3(0.0));
 }
+float blackbody_spd(float l,float temp) {
+ float nm=l*0.001;
+ return pow(0.56/nm,5.0)*(exp(14387.77/(0.56*temp))-1.0)/(exp(14387.77/(nm*temp))-1.0);
+}
 float source_spd(float l) {
-	float temp = illuminant==1 ? 2850.0 : (illuminant==0 ? 6500.0 : 4500.0);
-	float nm = l*0.001;
-	return pow(0.56/nm,5.0)*(exp(14387.77/(0.56*temp))-1.0)/(exp(14387.77/(nm*temp))-1.0);
+ return light_weights.x*blackbody_spd(l,6500.0)+light_weights.y*blackbody_spd(l,2850.0)+light_weights.z*blackbody_spd(l,4500.0);
+}
+float zone_mix(vec3 point) {
+ return zoned ? smoothstep(-zone_width,zone_width,dot(point,zone_axis)) : 0.0;
 }
 // A broad studio card gives coherent facet reflections; a small light adds fire.
 // The base is a deliberately simple ambient approximation, not a sampled HDRI.
@@ -42,6 +52,32 @@ float environment(vec3 point,vec3 d){
  float glint=step(glint_limit,dot(d,normalize(vec3(-0.20,-0.42,0.88))));
  return 0.42+softbox*2.1+glint*4.2;
 }
+
+// Jadeite is a polycrystalline aggregate: this soft translucent appearance is
+// an art-directed single-scattering approximation, not a transparent diamond.
+vec3 jade_appearance(vec3 point,vec3 normal,vec3 incident) {
+ vec3 inside_ray=refract(incident,normal,1.0/1.66);
+ float depth=10000.0;
+ for(int i=0;i<256;i++) {
+  if(i>=plane_count) break;
+  float denom=dot(planes[i].xyz,inside_ray);
+  if(denom>0.00001) {
+   float t=(planes[i].w-dot(planes[i].xyz,point))/denom;
+   if(t>0.01) depth=min(depth,t);
+  }
+ }
+ float deep_zone=zone_mix(point+inside_ray*min(depth,60.0)*0.45);
+ float zone=mix(zone_mix(point),deep_zone,0.40);
+ vec3 white_zone=vec3(0.88,0.92,0.84);
+ vec3 green_zone=vec3(0.32,0.69,0.45);
+ vec3 body=mix(white_zone,green_zone,zone);
+ vec3 smooth_normal=normalize(mix(normal,normalize(point),0.78));
+ float diffuse=0.78+0.22*max(0.0,dot(smooth_normal,normalize(vec3(-0.5,-0.7,0.9))));
+ float highlight=pow(max(0.0,dot(reflect(incident,smooth_normal),normalize(vec3(-0.2,-0.4,0.9)))),28.0)*0.30;
+ vec3 lamp=light_weights.x*vec3(0.96,1.0,0.98)+light_weights.y*vec3(1.0,0.94,0.84)+light_weights.z*vec3(1.0,0.99,0.95);
+ return clamp(body*diffuse*lamp+vec3(highlight),vec3(0.0),vec3(1.0));
+}
+
 bool entry_hit(vec3 o, vec3 d, out float distance, out vec3 normal) {
 	float near_t = 0.0;
 	float far_t = 1000.0;
@@ -86,7 +122,7 @@ float inclusion_path(vec3 point,vec3 ray,float segment) {
 	}
 	return length_inside;
 }
-float transport(vec3 point, vec3 incident, vec3 normal, float ri, float sigma) {
+float transport(vec3 point, vec3 incident, vec3 normal, float ri, float sigma, float sigma_alt) {
 	float entry_f = fresnel(-dot(incident,normal),1.0,ri);
 	float radiance = environment(point,reflect(incident,normal))*entry_f;
 	float energy = 1.0-entry_f;
@@ -106,10 +142,11 @@ float transport(vec3 point, vec3 incident, vec3 normal, float ri, float sigma) {
 		}
 		if(nearest>9999.0) break;
 		float inclusion_depth=inclusion_path(point,ray,nearest)*0.35;
-		float transmittance=exp(-(sigma+scattering_strength)*nearest-inclusion_depth);
+		float local_sigma=mix(sigma,sigma_alt,zone_mix(point+ray*nearest*0.5));
+		float transmittance=exp(-(local_sigma+scattering_strength)*nearest-inclusion_depth);
 		radiance+=energy*(1.0-exp(-inclusion_depth))*0.12;
 		// Single-scattering approximation, with the same extinction budget.
-		radiance+=energy*(1.0-transmittance)*scattering_strength/max(0.000001,sigma+scattering_strength)*0.22;
+		radiance+=energy*(1.0-transmittance)*scattering_strength/max(0.000001,local_sigma+scattering_strength)*0.22;
 		energy*=transmittance;
 		point+=ray*nearest;
 		vec3 outgoing=refract(ray,-n,ri);
@@ -141,8 +178,9 @@ vec3 spectral_material(vec3 point,vec3 d,vec3 normal){
   float position=clamp((l-407.5)/15.0,0.0,19.0);
   int lower=int(floor(position));int upper=min(lower+1,19);
   float sigma=mix(absorption_bands[lower],absorption_bands[upper],fract(position));
-  xyz+=cmf*spd*transport(point,d,normal,ri,sigma);
-  body_xyz+=cmf*spd*exp(-sigma*110.0);
+  float sigma_alt=mix(absorption_bands_alt[lower],absorption_bands_alt[upper],fract(position));
+  xyz+=cmf*spd*transport(point,d,normal,ri,sigma,sigma_alt);
+  body_xyz+=cmf*spd*exp(-mix(sigma,sigma_alt,zone_mix(point))*110.0);
   white_xyz+=cmf*spd;white_y+=cmf.y*spd;
  }
  body_xyz/=max(white_y,0.001);xyz/=max(white_y,0.001);white_xyz/=max(white_y,0.001);
@@ -173,11 +211,11 @@ vec3 spectral_material(vec3 point,vec3 d,vec3 normal){
  const float grey_floor=0.17;
  vec3 clean_hue=max(hue-vec3(grey_floor),vec3(0.0))/(1.0-grey_floor);
  hue=mix(vec3(1.0),clean_hue,colour_weight);
- hue=floor(hue*10.0+0.5)/10.0;
- float value=floor(peak*6.0+0.5)/6.0;
+ hue=(floor(hue*10.0)+smoothstep(vec3(0.30),vec3(0.70),fract(hue*10.0)))/10.0;
+ float value=(floor(peak*6.0)+smoothstep(0.30,0.70,fract(peak*6.0)))/6.0;
  vec3 result=hue*value;
  float luminance=dot(result,vec3(0.2126,0.7152,0.0722));
- float level=floor(luminance*5.0+0.5)/5.0;
+ float level=(floor(luminance*5.0)+smoothstep(0.30,0.70,fract(luminance*5.0)))/5.0;
  vec3 ramp=mix(vec3(0.18,0.25,0.35),vec3(0.94,0.96,0.92),level);
  if(chroma>0.25)ramp=mix(ramp,body*mix(0.38,1.12,level),0.75);
   float flash=smoothstep(0.17,0.46,purity)*smoothstep(0.3,0.7,peak);
@@ -204,6 +242,10 @@ void fragment(){
   }
  }
  if(!hit)COLOR=vec4(0.0);
+ else if(material_id==10){
+  vec3 jade=jade_appearance(p,n,d);
+  COLOR=vec4(floor(jade*12.0+0.5)/12.0,1.0);
+ }
  else if(outline){
   // Keep a consistent material hue while letting major ridges respond to light.
   float facing=dot(n,normalize(vec3(-0.45,-0.65,0.80)));
@@ -225,7 +267,7 @@ void fragment(){
    }
   }
   vec3 sample_point=p;
-  if(exit_face>=0){
+  if(exit_face>=0 && !zoned){
    float denominator=dot(internal_ray,n);
    if(abs(denominator)>0.01){
     vec3 exit_center=facet_centers[exit_face];

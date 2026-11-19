@@ -16,10 +16,15 @@ const GEMS = [
  {"name":"祖母绿","en":"EMERALD","origin":"绿柱石 · 绿色品种","rough":8.7,"angle":43.0,"crown":36.0,"ri":1.580,"dispersion":0.014,"heat":80.0,"toughness":0.65,"day":Color("42b67f"),"warm":Color("63a270"),"neutral":Color("60b58d")},
  {"name":"粉色尖晶石","en":"SPINEL","origin":"尖晶石族 · 粉色品种","rough":6.9,"angle":42.0,"crown":36.0,"ri":1.719,"dispersion":0.020,"heat":130.0,"toughness":1.3,"day":Color("df7299"),"warm":Color("e48993"),"neutral":Color("db82b0")},
  {"name":"金色托帕石","en":"TOPAZ","origin":"黄玉 · 金色品种","rough":9.4,"angle":43.0,"crown":38.0,"ri":1.620,"dispersion":0.014,"heat":95.0,"toughness":0.75,"day":Color("e9b96d"),"warm":Color("e5ac58"),"neutral":Color("e6c18b")},
- {"name":"红宝石","en":"RUBY","origin":"刚玉 · 红色品种","rough":6.7,"angle":40.0,"crown":38.0,"ri":1.765,"dispersion":0.018,"heat":135.0,"toughness":1.5,"day":Color("d94c72"),"warm":Color("e65b55"),"neutral":Color("d9618a")}
+ {"name":"红宝石","en":"RUBY","origin":"刚玉 · 红色品种","rough":6.7,"angle":40.0,"crown":38.0,"ri":1.765,"dispersion":0.018,"heat":135.0,"toughness":1.5,"day":Color("d94c72"),"warm":Color("e65b55"),"neutral":Color("d9618a")},
+ {"name":"白绿翡翠","en":"ZONED JADEITE","origin":"翡翠 · 白绿分色","rough":12.0,"angle":42.0,"crown":38.0,"ri":1.66,"dispersion":0.013,"heat":90.0,"toughness":1.5,"day":Color("a7d5b8"),"warm":Color("c7d9ad"),"neutral":Color("b2d7bb")},
+ {"name":"紫黄晶","en":"AMETRINE","origin":"石英 · 紫黄分色","rough":10.0,"angle":43.0,"crown":40.0,"ri":1.544,"dispersion":0.008,"heat":75.0,"toughness":0.8,"day":Color("c2a3cd"),"warm":Color("d3ad99"),"neutral":Color("c6a6c4")},
+ {"name":"双色碧玺","en":"BICOLOR TOURMALINE","origin":"电气石 · 粉绿分色","rough":9.0,"angle":42.0,"crown":38.0,"ri":1.624,"dispersion":0.017,"heat":85.0,"toughness":0.8,"day":Color("99c8ad"),"warm":Color("c5ada0"),"neutral":Color("a9c1ae")}
 
 ]
-const SHAPES = ["八角单翻", "椭圆刻面", "八重对称刻面", "长方阶梯式", "圆形明亮（心箭试验）", "枕形刻面", "梨形刻面", "马眼刻面", "切角三角形", "六边阶梯式"]
+const SHAPES = ["八角单翻", "椭圆刻面", "八重对称刻面", "长方阶梯式", "圆形明亮（心箭试验）", "枕形刻面", "梨形刻面", "马眼刻面", "切角三角形", "六边阶梯式", "八面体（8面）", "简易方形（13面）", "简易长阶梯（17面）", "蛋面（多面近似）"]
+# Fictional relative prices for selecting rough, not real-world valuations.
+const ROUGH_PRICES = [1200, 90, 850, 2200, 140, 60, 1000, 260, 180, 1500, 900, 300, 500]
 var shape_id := 0
 var stage: int = Stage.RAW
 var gem_id := 0
@@ -59,6 +64,9 @@ var optical_return := 0.0
 var crystal_orientation := 0
 var chips: Array = []
 var chipped_tasks: Dictionary = {}
+var facet_scores: Array[int] = []
+var facet_grades: Array[String] = []
+var repair_checkpoint: Dictionary = {}
 
 func _init() -> void: reset(0)
 
@@ -88,6 +96,9 @@ func reset(id: int, selected_shape: int = -1) -> void:
 	chip_sources.clear()
 	chips.clear()
 	chipped_tasks.clear()
+	facet_scores.clear()
+	facet_grades.clear()
+	repair_checkpoint.clear()
 	body = Stock.make(gem_id,rough_kind)
 	inner_body = Stock.core(body)
 	crust = rough_kind==1 and gem_id in [0,2]
@@ -102,6 +113,8 @@ func reset(id: int, selected_shape: int = -1) -> void:
 		starts.append(INF)
 		cut_angles.append(task.angle)
 		cut_depths.append(0.0)
+		facet_scores.append(-1)
+		facet_grades.append("")
 	revision += 1
 	generation += 1
 
@@ -148,7 +161,24 @@ func build_recipe() -> void:
 		return
 	var pa: float = GEMS[gem_id].angle
 	var ca: float = GEMS[gem_id].crown
-	if shape_id==8:
+	if shape_id == 13:
+		add_ring(1,0,0.0,0.0,8.0,0.0,"蛋面平底")
+		add_ring(8,1,90.0,25.0,0.0,0.0,"蛋面腰围")
+		for a in [70.0,45.0,20.0]:
+			add_ring(8,2,a,25.0*sin(deg_to_rad(a)),-25.0*cos(deg_to_rad(a)),0.0,"蛋面弧顶")
+	elif shape_id == 10:
+		add_ring(4,0,45.0,25.0,0.0,PI/4.0,"八面体亭面")
+		add_ring(4,2,45.0,25.0,0.0,PI/4.0,"八面体冠面")
+	elif shape_id == 11:
+		add_ring(4,0,pa,30.0,2.0,0.0,"方形亭面")
+		add_ring(4,1,90.0,30.0,0.0,0.0,"方形腰围")
+		add_ring(4,2,ca,30.0,-2.0,0.0,"方形冠面")
+	elif shape_id == 12:
+		add_ring(4,0,pa,24.0,8.0,0.0,"长阶梯内亭")
+		add_ring(4,0,pa+10.0,30.0,2.0,0.0,"长阶梯外亭")
+		add_ring(4,1,90.0,30.0,0.0,0.0,"长阶梯腰围")
+		add_ring(4,2,ca,30.0,-2.0,0.0,"长阶梯冠面")
+	elif shape_id==8:
 		add_ring(3,0,pa,20,2,0,"三角亭主面")
 		add_ring(3,1,90,20,0,0,"三角腰围")
 		add_ring(3,1,90,32,0,PI/3,"护角")
@@ -176,7 +206,27 @@ func build_recipe() -> void:
 			var d: float = sin(deg_to_rad(ca))*30.0+cos(deg_to_rad(ca))*2.0
 			var table_radius: float = (d-cos(deg_to_rad(ca))*15.0)/sin(deg_to_rad(ca))
 			add_ring(8,2,ca-15.0,table_radius*0.90,-15.0,PI/8.0,"八星刻面")
-	add_ring(1,3,0.0,0.0,-15.0,0.0,"台面")
+	if shape_id != 10: add_ring(1,3,0.0,0.0,-25.0 if shape_id==13 else -15.0,0.0,"蛋面顶点" if shape_id==13 else "台面")
+
+func cut_difficulty() -> int:
+	return 4 if shape_id==4 and imported_cut.is_empty() else (1 if tasks.size() <= 10 else (2 if tasks.size() <= 25 else 3))
+
+func facet_difficulty(id: int) -> int:
+	var small: bool = int(tasks[id].tier) == 3 or str(tasks[id].name).contains("腰下") or str(tasks[id].name).contains("上腰") or str(tasks[id].name).contains("八星")
+	return mini(4, cut_difficulty() + int(small))
+
+func overall_score() -> int:
+	var total := 0
+	var count := 0
+	for score in facet_scores:
+		if score >= 0: total += score; count += 1
+	return int(round(float(total) / maxf(1.0,float(count))))
+
+func all_a_or_better() -> bool:
+	if facet_grades.is_empty(): return false
+	for grade in facet_grades:
+		if grade not in ["S", "A"]: return false
+	return true
 
 func target_angle() -> float: return tasks[facet].angle
 
@@ -239,6 +289,7 @@ func check_fracture() -> void:
 	if thermal_damage >= 18.0 * GEMS[gem_id].toughness and not failed: fracture("热应力贯穿裂纹 · 原石报废")
 
 func fracture(reason: String) -> void:
+	remember_repair_state()
 	failed = true
 	failure_reason = reason
 	last_error = reason
@@ -251,7 +302,7 @@ func fracture(reason: String) -> void:
 	revision += 1
 
 ## Wrong angles remove a different half-space. Nothing snaps to an ideal mesh.
-func work(delta: float) -> int:
+func work(delta: float, allow_overcut: bool = false) -> int:
 	last_error = ""
 	if failed: return -2
 	if stage not in [Stage.CUT, Stage.POLISH]: return -1
@@ -259,7 +310,7 @@ func work(delta: float) -> int:
 		last_error = "换盘：600# 切面 / 3000# 一次抛光"
 		return -1
 	var values: Array[float] = cut if stage == Stage.CUT else polish
-	if values[facet] >= 1.0:
+	if values[facet] >= (1.25 if allow_overcut and stage == Stage.CUT else 1.0):
 		last_error = "该面此工序已完成，请转动分度轮或换盘"
 		return -1
 	if stage == Stage.POLISH and absf(angle - cut_angles[facet]) > 0.6:
@@ -277,7 +328,7 @@ func work(delta: float) -> int:
 			starts[facet] = Solid.support(body, facet_normal(facet, angle)) + 0.01
 			chip_sources[facet] = body
 		var normal := facet_normal(facet, cut_angles[facet])
-		var next_progress: float = minf(1.0, values[facet] + delta * 0.64 * pressure)
+		var next_progress: float = minf(1.25 if allow_overcut else 1.0, values[facet] + delta * 0.64 * pressure)
 		var final_depth: float = tasks[facet].d - cut_depths[facet]
 		var distance: float = lerpf(starts[facet], final_depth, next_progress)
 		var before: float = Solid.volume(body)
@@ -288,6 +339,7 @@ func work(delta: float) -> int:
 			removal_events.append({"body": Solid.clip(chip_sources[facet], -normal, -distance, facet), "fracture": false})
 			chip_sources[facet] = body
 		if next_progress>=0.80 and not chipped_tasks.has(facet) and chip_risk()>1.0:
+			remember_repair_state()
 			make_edge_chip()
 		values[facet] = next_progress
 		revision += 1
@@ -299,7 +351,30 @@ func work(delta: float) -> int:
 		values[facet] = minf(1.0, values[facet] + delta * 0.85 * pressure)
 		prepolish[facet] = values[facet]
 		revision += 1
-	return 1 if values[facet] >= 1.0 else 0
+	return 1 if values[facet] >= (1.25 if allow_overcut and stage == Stage.CUT else 1.0) else 0
+
+func remember_repair_state() -> void:
+	repair_checkpoint = {"body": body.duplicate(true), "inner": inner_body.duplicate(true), "chips": chips.duplicate(true), "chipped": chipped_tasks.duplicate(true), "quality": quality}
+
+func can_magic_repair() -> bool:
+	return not repair_checkpoint.is_empty() and (failed or not chips.is_empty())
+
+func magic_repair() -> bool:
+	if not can_magic_repair(): return false
+	body = repair_checkpoint.body
+	inner_body = repair_checkpoint.inner
+	chips = repair_checkpoint.chips
+	chipped_tasks = repair_checkpoint.chipped
+	quality = repair_checkpoint.quality
+	failed = false
+	failure_reason = ""
+	last_error = ""
+	thermal_damage = 0.0
+	temperature = 20.0
+	removal_events.clear()
+	repair_checkpoint.clear()
+	revision += 1
+	return true
 
 func geometry_quality() -> float:
 	var error := 0.0
@@ -324,7 +399,7 @@ func save_piece() -> bool:
 	if stage != Stage.SHOWCASE or saved or failed: return false
 	var planes: Array = []
 	for f in body: planes.append([f.n.x, f.n.y, f.n.z, f.d, f.tag])
-	collection.append({"gem_id": gem_id, "shape_id": shape_id, "shape": cut_name(), "recipe": imported_cut, "quality": quality, "carats": carats(), "planes": planes, "chips": chips, "crystal_orientation": crystal_orientation, "return": optical_return, "date": Time.get_datetime_string_from_system()})
+	collection.append({"gem_id": gem_id, "shape_id": shape_id, "shape": cut_name(), "recipe": imported_cut, "quality": quality, "score": overall_score(), "scores": facet_scores.duplicate(), "grades": facet_grades.duplicate(), "carats": carats(), "planes": planes, "chips": chips, "crystal_orientation": crystal_orientation, "return": optical_return, "date": Time.get_datetime_string_from_system()})
 	if not save_collection():
 		collection.pop_back()
 		return false
@@ -406,6 +481,10 @@ func restore_piece(entry: Dictionary) -> bool:
 	stage=Stage.SHOWCASE
 	saved=true
 	quality=float(entry.quality)
+	if entry.get("scores") is Array:
+		for i in range(mini(facet_scores.size(),entry.scores.size())): facet_scores[i] = int(entry.scores[i])
+	if entry.get("grades") is Array:
+		for i in range(mini(facet_grades.size(),entry.grades.size())): facet_grades[i] = str(entry.grades[i])
 	optical_return=float(entry.get("return",0.0))
 	initial_volume=GEMS[gem_id].rough*Solid.volume(body)/maxf(0.001,float(entry.carats))
 	chips=entry.get("chips",[]).duplicate(true)

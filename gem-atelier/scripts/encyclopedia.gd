@@ -55,7 +55,7 @@ func open(id: int) -> void:
 
 func update_page() -> void:
 	var d: Dictionary = Data.ENTRIES[selected]
-	page.text = "[b]%s · 化学与结构[/b]\n%s\n\n[b]典型原料[/b]  %s\n[b]常见成品[/b]  %s\n\n[b]物理性质[/b]\n莫氏硬度 %s（抗划伤） · %s\n解理 / 裂理：%s\n\n[b]光学性质[/b]\n折射率：%s\n%s\n\n[b]本作中的加工[/b]\n轻压通常安全；重压、过切与精细薄边叠加方向敏感性，可产生永久缺角。晶向 A/B/C 是简化坐标下的 0°/30°/60° 旋转，并非鉴定晶向。崩角仍可继续加工；过热导致的整体断裂才会报废。风险系数、温度均为游戏参数。\n\n[b]模型边界[/b]\n图中为实际渲染使用的 20 波段拟合吸收系数（游戏长度单位），不是实测吸收谱。采用标量折射率与 Cauchy 色散；未完整计算偏振、双折射、多色性。化学式是组成表达，并非天然结晶反应方程式。\n玻璃是非晶体，没有晶体解理；可以刻面，是否崩边取决于玻璃种类、角部与工艺，不能一概认定切心箭必崩。\n\n[url=https://www.handbookofmineralogy.org/pdfs/%s.pdf]矿物数据来源：Handbook of Mineralogy[/url]\n[url=https://www.gia.edu/gia-news-research/how-protect-diamond-chipping]GIA：解理、薄腰与崩角[/url] · [url=https://www.gia.edu/alexandrite-care-cleaning]GIA：变石护理与韧性[/url]\n" % [d.formula,d.structure,d.rough,d.cuts,d.hardness,d.toughness,d.cleavage,d.ri,d.spectrum,d.source]
+	page.text = "[b]%s · 化学与结构[/b]\n%s\n\n[b]典型原料[/b]  %s\n[b]常见成品[/b]  %s\n\n[b]物理性质[/b]\n莫氏硬度 %s（抗划伤） · %s\n解理 / 裂理：%s\n\n[b]光学性质[/b]\n折射率：%s\n%s\n\n[b]本作中的加工[/b]\n轻压通常安全；重压、过切与精细薄边叠加方向敏感性，可产生永久缺角。晶向 A/B/C 是简化坐标下的 0°/30°/60° 旋转，并非鉴定晶向。崩角仍可继续加工；过热导致的整体断裂才会报废。风险系数、温度均为游戏参数。\n\n[b]模型边界[/b]\n图中为 20 波段基准拟合吸收系数（游戏长度单位）；像素与真实风格可按美术表现分别调整倍率，并非实测吸收谱。采用标量折射率与 Cauchy 色散；未完整计算偏振、双折射、多色性。化学式是组成表达，并非天然结晶反应方程式。\n玻璃是非晶体，没有晶体解理；可以刻面，是否崩边取决于玻璃种类、角部与工艺，不能一概认定切心箭必崩。\n\n[url=https://www.handbookofmineralogy.org/pdfs/%s.pdf]矿物数据来源：Handbook of Mineralogy[/url]\n[url=https://www.gia.edu/gia-news-research/how-protect-diamond-chipping]GIA：解理、薄腰与崩角[/url] · [url=https://www.gia.edu/alexandrite-care-cleaning]GIA：变石护理与韧性[/url]\n" % [d.formula,d.structure,d.rough,d.cuts,d.hardness,d.toughness,d.cleavage,d.ri,d.spectrum,d.source]
 	page.scroll_to_line(0)
 	plot.queue_redraw()
 

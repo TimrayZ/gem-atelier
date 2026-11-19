@@ -1,6 +1,6 @@
 extends RefCounted
 const Solid=preload("res://scripts/solid_geometry.gd")
-const NAMES=["板状断晶","六方柱状晶体","六方桶状晶体","八面体晶体","斜柱状解理块","合成六方晶体片","六方平顶柱晶","八面体尖晶石","斜方柱状晶体","红色刚玉晶体"]
+const NAMES=["板状断晶","六方柱状晶体","六方桶状晶体","八面体晶体","斜柱状解理块","合成六方晶体片","六方平顶柱晶","八面体尖晶石","斜方柱状晶体","红色刚玉晶体","白绿翡翠块","紫黄石英晶体","双色碧玺晶体"]
 
 static func box(r: Vector3) -> Array:
 	var v: Array=[]
@@ -20,7 +20,7 @@ static func box(r: Vector3) -> Array:
 
 static func make(gem: int, kind: int) -> Array:
 	if kind==1:
-		var radii: Vector3=[Vector3(44,45,38),Vector3(42,51,40),Vector3(46,42,40),Vector3(45,43,43),Vector3(46,44,40),Vector3(44,43,43),Vector3(42,51,40),Vector3(45,43,43),Vector3(44,50,38),Vector3(46,42,40)][gem]
+		var radii: Vector3=[Vector3(44,45,38),Vector3(42,51,40),Vector3(46,42,40),Vector3(45,43,43),Vector3(46,44,40),Vector3(44,43,43),Vector3(42,51,40),Vector3(45,43,43),Vector3(44,50,38),Vector3(46,42,40),Vector3(45,47,42),Vector3(42,51,40),Vector3(42,51,40)][gem]
 		var worn: Array=Solid.ellipsoid(radii,20,10)
 		worn=Solid.clip(worn,Vector3(0.35,0.8,0.2).normalized(),39.0,-1)
 		return Solid.clip(worn,Vector3(-0.6,-0.2,0.6).normalized(),42.0,-1)
@@ -31,17 +31,19 @@ static func make(gem: int, kind: int) -> Array:
 				for z in [-1,1]:
 					var n:=Vector3(x,y,z).normalized()
 					body=Solid.clip(body,n,63.0/sqrt(3.0),-1)
-	elif gem in [1,2,5,6,9]:
+	elif gem in [1,2,5,6,9,11,12]:
 		for i in range(6):
 			var a:=i*TAU/6.0
 			body=Solid.clip(body,Vector3(cos(a),0,sin(a)),43.0,-1)
-			if gem in [1,6]:
+			if gem in [1,6,11]:
 				body=Solid.clip(body,Vector3(cos(a)*0.6,-0.8,sin(a)*0.6),47.0,-1)
 			else:
 				for sign_y in [-1,1]:
 					body=Solid.clip(body,Vector3(cos(a)*0.65,sign_y*0.76,sin(a)*0.65).normalized(),50.0,-1)
 		body=Solid.clip(body,Vector3(0,1,0),44.0 if gem==1 else 49.0,-1)
-		if gem in [2,5,6,9]: body=Solid.clip(body,Vector3(0,-1,0),49.0,-1)
+		if gem in [2,5,6,9,12]: body=Solid.clip(body,Vector3(0,-1,0),49.0,-1)
+	elif gem==10:
+		body=Solid.ellipsoid(Vector3(45,47,42),12,6)
 	elif gem==0:
 		body=box(Vector3(43,47,37))
 		for i in range(4):
