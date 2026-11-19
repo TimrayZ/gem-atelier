@@ -134,6 +134,7 @@ float transport(vec3 point, vec3 incident, vec3 normal, float ri, float sigma) {
 }
 
 uniform float art_pixel=1.0;
+uniform vec3 outline_colour=vec3(0.72,0.76,0.77);
 vec3 xyz_to_rgb(vec3 xyz){return vec3(dot(vec3(3.2406,-1.5372,-0.4986),xyz),dot(vec3(-0.9689,1.8758,0.0415),xyz),dot(vec3(0.0557,-0.2040,1.0570),xyz));}
 vec3 spectral_material(vec3 point,vec3 d,vec3 normal){
  vec3 body_xyz=vec3(0.0);vec3 xyz=vec3(0.0);vec3 white_xyz=vec3(0.0);float white_y=0.0;
@@ -169,6 +170,12 @@ vec3 spectral_material(vec3 point,vec3 d,vec3 normal){
  // An illustrative material colour derived from absorption × source SPD,
  // never a per-gem RGB paint. Colourless materials retain the traced fire hue.
  if(chroma>0.25 && max(rgb.r,max(rgb.g,rgb.b))<0.92)hue=mix(hue,pow(body,vec3(1.25)),0.65);
+ // Keep faint tints neutral and remove some grey from distinct colours.
+ float purity=max(hue.r,max(hue.g,hue.b))-min(hue.r,min(hue.g,hue.b));
+ float colour_weight=smoothstep(0.06,0.25,purity);
+ const float grey_floor=0.17;
+ vec3 clean_hue=max(hue-vec3(grey_floor),vec3(0.0))/(1.0-grey_floor);
+ hue=mix(vec3(1.0),clean_hue,colour_weight);
  hue=floor(hue*10.0+0.5)/10.0;
  float value=floor(peak*6.0+0.5)/6.0;
  return hue*value;
@@ -181,19 +188,19 @@ void fragment(){
  vec2 pixel=(floor(UV*logical_size/art_pixel)+vec2(0.5))*art_pixel;
  vec3 p;vec3 n;vec3 d;
  bool hit=pixel_hit(pixel,p,n,d);
- bool silhouette=false;
- float facet_crease=0.0;
- vec2 directions[4];directions[0]=vec2(1,0);directions[1]=vec2(-1,0);directions[2]=vec2(0,1);directions[3]=vec2(0,-1);
- for(int i=0;i<4;i++){
-  vec3 p2;vec3 n2;vec3 d2;bool other=pixel_hit(pixel+directions[i]*art_pixel,p2,n2,d2);
-  if(other!=hit)silhouette=true;
-  // Draw each shared ridge on one side so it stays one pixel wide.
-  if(hit && other && i%2==0){
-   float bend=1.0-clamp(dot(n,n2),-1.0,1.0);
-   facet_crease=max(facet_crease,smoothstep(0.002,0.055,bend));
+ bool outline=false;
+ if(hit){
+  for(int i=0;i<4;i++){
+   vec2 axis=i<2 ? vec2(1,0) : vec2(0,1);
+   float side=i%2==0 ? 1.0 : -1.0;
+   vec3 neighbour_point;vec3 neighbour_normal;vec3 neighbour_ray;
+   bool neighbour_hit=pixel_hit(pixel+axis*side*art_pixel,neighbour_point,neighbour_normal,neighbour_ray);
+   // Mark the inner silhouette and only one side of each shared facet edge.
+   if(!neighbour_hit || (side>0.0 && dot(n,neighbour_normal)<0.982)) outline=true;
   }
  }
- if(!hit)COLOR=vec4(vec3(0.035,0.046,0.055),silhouette?1.0:0.0);
+ if(!hit)COLOR=vec4(0.0);
+ else if(outline)COLOR=vec4(outline_colour,1.0);
  else{
   // Group pixels by both their front facet and the first internal facet reached.
   vec3 internal_ray=refract(d,n,1.0/refractive_index);
@@ -217,10 +224,12 @@ void fragment(){
   }
   vec3 sample_ray=normalize(sample_point-vec3(0.0,0.0,220.0));
   vec3 colour=spectral_material(sample_point,sample_ray,n);
-  float brightness=max(colour.r,max(colour.g,colour.b));
-  vec3 crease=brightness>0.33 ? colour*0.58 : mix(colour,vec3(0.48,0.54,0.58),0.35);
-  colour=mix(colour,crease,facet_crease);
-  if(silhouette)colour=mix(vec3(0.045,0.058,0.069),colour,0.28);
+  // Small pixel star on a front facet when it catches the studio highlight.
+  float glint=dot(reflect(d,n),normalize(vec3(-0.20,-0.42,0.88)));
+  vec2 star_center=center+vec2(-14.0,-18.0)*gem_scale;
+  vec2 star=abs((pixel-star_center)/art_pixel);
+  float pulse=step(0.82,0.5+0.5*sin(TIME*2.0));
+  if(glint>0.985 && pulse>0.0 && ((star.x<0.6 && star.y<2.5)||(star.y<0.6 && star.x<2.5))) colour=vec3(1.0);
   COLOR=vec4(colour,1.0);
  }
 }

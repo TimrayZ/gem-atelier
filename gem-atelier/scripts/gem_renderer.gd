@@ -20,6 +20,9 @@ static func configure(material: ShaderMaterial, model, body: Array, yaw: float, 
 	if not real_mode:
 		centers.resize(256)
 		material.set_shader_parameter("facet_centers",centers)
+		var body_colour: Color=model.GEMS[model.gem_id][["day","warm","neutral"][light]]
+		var outline:=body_colour.lerp(Color("829195"),0.35).darkened(0.07)
+		material.set_shader_parameter("outline_colour",Vector3(outline.r,outline.g,outline.b))
 	material.set_shader_parameter("logical_size",logical)
 	material.set_shader_parameter("center",logical*0.5)
 	material.set_shader_parameter("gem_scale",scale)

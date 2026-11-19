@@ -3,8 +3,8 @@
 挑一块原石，慢慢切出自己的宝石。做完换盏灯，转一转，再把它放进绒布收藏室。
 Choose a rough stone, cut and polish it, turn it under different lights, then keep it in your velvet-lined collection.
 
-**v0.12.1 Windows 体验版：10 种原料 × 10 种切工。**
-**v0.12.1 Windows preview: 10 materials × 10 cuts.**
+**v0.12.2 Windows 体验版：10 种原料 × 10 种切工。**
+**v0.12.2 Windows preview: 10 materials × 10 cuts.**
 
 [下载游戏 / Download](https://github.com/TimrayZ/gem-atelier/releases/latest) · [宣传素材 / Media kit](https://github.com/TimrayZ/gem-atelier/releases/download/v0.11.0/GemAtelier-v0.11.0-MediaKit.zip)
 
@@ -12,7 +12,7 @@ Choose a rough stone, cut and polish it, turn it under different lights, then ke
 
 ## 开始游玩 / Play
 
-1. 下载 **GemAtelier-v0.12.1-Windows-x64.zip**，完整解压，双击 **GemAtelier.exe**。无需安装 Godot，无需联网。
+1. 下载 **GemAtelier-v0.12.2-Windows-x64.zip**，完整解压，双击 **GemAtelier.exe**。无需安装 Godot，无需联网。
 2. 左侧选择原料，右侧选择切工；按右下角按钮逐步加工，或按 **F8** 自动完成后续工序。
 3. 成品拖动旋转、滚轮缩放，按 **1 / 2 / 3** 比较日光、白炽灯与中性光。
 4. 喜欢就收入收藏室。点击收藏中的宝石，可随时重新旋转、换光查看。
